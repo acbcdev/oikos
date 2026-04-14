@@ -19,8 +19,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Neon FinTech Tracker - Dashboard",
-  description: "Aggressive savings dashboard",
+  title: "Oikos",
+  description: "Personal finance dashboard",
 };
 
 export default function RootLayout({

@@ -33,7 +33,7 @@ Multi-route app. `app/layout.tsx` owns `SidebarProvider` + `AppSidebar` (shared 
 
 | Route | Page |
 |---|---|
-| `/` | `app/page.tsx` — Wealth Velocity dashboard |
+| `/` | `app/page.tsx` — Oikos dashboard |
 | `/wallet` | `app/wallet/page.tsx` — Accounts + Transactions 2-pane layout |
 | `/reports` | `app/reports/page.tsx` — Financial Trajectory charts + metrics |
 

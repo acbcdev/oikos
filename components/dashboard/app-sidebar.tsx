@@ -31,11 +31,11 @@ export function AppSidebar() {
       <SidebarHeader className="p-6 ">
         <div className="flex items-center gap-4">
           <div className="size-12 rounded-xl flex items-center justify-center bg-primary text-primary-foreground font-display font-bold text-2xl shrink-0 shadow-neon">
-            NT
+            O
           </div>
 
           <span className="text-foreground font-display text-lg font-bold leading-tight tracking-wide uppercase">
-            Neon Tracker
+            Oikos
           </span>
           <SidebarTrigger size={"icon-lg"} />
         </div>

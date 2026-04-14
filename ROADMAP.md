@@ -1,4 +1,4 @@
-# Neon Tracker — Feature Roadmap
+# Oikos — Feature Roadmap
 
 > **Architecture note:** A backend is planned. Keep store logic abstracted behind
 > service functions so swapping Zustand persist for API calls is a one-layer change.
