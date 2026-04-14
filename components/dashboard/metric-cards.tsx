@@ -1,0 +1,285 @@
+"use client";
+
+import { useEffect } from "react";
+import {
+  ArrowUpRight,
+  ArrowDownRight,
+  Landmark,
+  Luggage,
+  CalendarDays,
+  PiggyBank,
+  CircleCheck,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardHeader,
+  CardAction,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Area, AreaChart } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import { useWalletStore, useDashboardMetrics } from "@/lib/store/wallet-store";
+import { formatCurrency, formatCurrencySplit } from "@/lib/data/wallet";
+
+const netWorthChartConfig = {
+  value: { label: "Net Worth", color: "var(--color-positive)" },
+} satisfies ChartConfig;
+
+const burnChartConfig = {
+  value: { label: "Daily Burn", color: "var(--color-destructive)" },
+} satisfies ChartConfig;
+
+// ─── Net Worth ─────────────────────────────────────────────────────────────────
+
+export function NetWorthCard({ currency = null }: { currency?: string | null }) {
+  useEffect(() => {
+    useWalletStore.persist.rehydrate();
+  }, []);
+
+  const { totalNetWorth, netWorthSparkline, netWorthChangePct, displayCurrency } =
+    useDashboardMetrics(currency);
+
+  const isUp = netWorthChangePct >= 0;
+  const { whole, decimal } = formatCurrencySplit(totalNetWorth, displayCurrency);
+
+  return (
+    <Card className="rounded-2xl py-0 h-56 relative overflow-hidden group glass-card">
+      <CardHeader className="p-6 pb-0 relative z-10">
+        <span className="text-muted-foreground font-display text-[10px] font-bold uppercase tracking-[0.2em]">
+          Total Net Worth
+        </span>
+        <CardAction>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-positive/10 border border-positive/20">
+            <Landmark size={18} className="text-positive" />
+          </div>
+        </CardAction>
+      </CardHeader>
+
+      <div className="absolute bottom-0 left-0 right-0 h-20 opacity-30 pointer-events-none">
+        <ChartContainer config={netWorthChartConfig} className="w-full h-full">
+          <AreaChart
+            data={netWorthSparkline}
+            margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+          >
+            <defs>
+              <linearGradient id="netWorthGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-positive)" stopOpacity={0.4} />
+                <stop offset="95%" stopColor="var(--color-positive)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="var(--color-positive)"
+              strokeWidth={2}
+              fill="url(#netWorthGrad)"
+              dot={false}
+              isAnimationActive={false}
+            />
+          </AreaChart>
+        </ChartContainer>
+      </div>
+
+      <CardContent className="px-6 pb-4 relative z-10 mt-auto">
+        <div className="text-foreground font-display text-5xl font-bold tracking-tighter mb-2 flex items-end gap-1">
+          {whole}
+          {decimal && (
+            <span className="text-foreground/35 text-2xl font-normal mb-1">
+              {decimal}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge
+            className={`px-2.5 py-0.5 rounded-full text-[10px] font-display font-bold tracking-wider flex items-center gap-1 border-0 ${
+              isUp
+                ? "bg-positive/10 text-positive"
+                : "bg-destructive/10 text-destructive"
+            }`}
+          >
+            {isUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+            {isUp ? "+" : ""}
+            {netWorthChangePct.toFixed(1)}%
+          </Badge>
+          <span className="text-muted-foreground font-body text-xs">
+            vs last month
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Active Goal ───────────────────────────────────────────────────────────────
+
+export function ActiveGoalCard() {
+  const percent = 85;
+  return (
+    <Card className="rounded-2xl py-0 h-56 relative overflow-hidden group glass-card">
+      <CardHeader className="p-6 pb-0 relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 border border-primary/20">
+            <Luggage size={18} className="text-primary" />
+          </div>
+          <div>
+            <span className="block text-muted-foreground font-display text-[9px] font-bold uppercase tracking-[0.18em] leading-none mb-1">
+              Active Goal
+            </span>
+            <h3 className="text-foreground font-display text-lg font-bold leading-none">
+              Vacation Fund
+            </h3>
+          </div>
+        </div>
+        <CardAction>
+          <div className="text-right">
+            <div className="text-foreground font-display text-2xl font-bold tracking-tight">
+              $8.5k
+            </div>
+            <div className="text-muted-foreground font-display text-[9px] font-bold uppercase tracking-tight">
+              of $10k target
+            </div>
+          </div>
+        </CardAction>
+      </CardHeader>
+
+      <CardFooter className="p-6 pt-0 mt-auto relative z-10 border-t-0 bg-transparent flex-col items-stretch">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <CalendarDays size={12} className="text-primary" />
+            <span className="text-muted-foreground font-body text-[10px] uppercase tracking-wide">
+              Oct 12, 2024
+            </span>
+          </div>
+          <span className="text-primary font-display font-bold text-base">
+            {percent}%
+          </span>
+        </div>
+        <div className="h-2 w-full rounded-full overflow-hidden bg-white/5">
+          <div
+            className="h-full rounded-full relative transition-all duration-1000 ease-out"
+            style={{
+              width: `${percent}%`,
+              background:
+                "linear-gradient(90deg, var(--color-primary) 0%, #e8ff4d 100%)",
+              boxShadow: "0 0 12px rgba(212,255,0,0.4)",
+            }}
+          />
+        </div>
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border bg-primary/5 border-primary/15">
+            <PiggyBank size={12} className="text-primary" />
+            <span className="text-primary font-display text-[9px] font-bold uppercase tracking-widest">
+              $450/mo
+            </span>
+          </div>
+          <div className="flex items-center gap-1 text-positive font-display text-[9px] font-bold uppercase tracking-widest">
+            <CircleCheck size={12} />
+            On Track
+          </div>
+        </div>
+      </CardFooter>
+
+      <div className="absolute -right-4 -bottom-4 opacity-[0.025] rotate-12 pointer-events-none group-hover:opacity-[0.06] transition-opacity duration-500">
+        <Luggage size={110} className="text-foreground" />
+      </div>
+    </Card>
+  );
+}
+
+// ─── 30-Day Burn ───────────────────────────────────────────────────────────────
+
+export function BurnRateCard({ currency = null }: { currency?: string | null }) {
+  const { burnTotal, todayBurn, burnSparkline, displayCurrency } =
+    useDashboardMetrics(currency);
+  const { whole, decimal } = formatCurrencySplit(burnTotal, displayCurrency);
+  const isHighRate = burnTotal > 1000;
+
+  return (
+    <Card className="rounded-2xl py-0 h-56 relative overflow-hidden group glass-card">
+      <CardHeader className="p-6 pb-0 relative z-10">
+        <span className="text-muted-foreground font-display text-[10px] font-bold uppercase tracking-[0.2em]">
+          30-Day Burn
+        </span>
+        <CardAction>
+          <Badge
+            className={`px-2.5 py-0.5 rounded-full font-display text-[9px] font-bold uppercase tracking-wider border-0 ${
+              isHighRate
+                ? "bg-destructive/15 text-destructive"
+                : "bg-positive/10 text-positive"
+            }`}
+          >
+            {isHighRate ? "High Rate" : "On Track"}
+          </Badge>
+        </CardAction>
+      </CardHeader>
+
+      <CardContent className="px-6 relative z-10">
+        <div className="text-foreground font-display text-4xl font-bold tracking-tighter mb-1 flex items-end gap-1">
+          {whole}
+          {decimal && (
+            <span className="text-muted-foreground text-xl font-normal mb-0.5">
+              {decimal}
+            </span>
+          )}
+        </div>
+        <p className="text-muted-foreground font-body text-xs flex items-center gap-1.5">
+          {todayBurn > 0 ? (
+            <>
+              <TrendingDown size={12} className="text-destructive" />+
+              {formatCurrency(todayBurn, displayCurrency)} tracked today
+            </>
+          ) : (
+            <>
+              <TrendingUp size={12} className="text-positive" />
+              No spend today
+            </>
+          )}
+        </p>
+      </CardContent>
+
+      <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none">
+        <ChartContainer config={burnChartConfig} className="w-full h-full">
+          <AreaChart
+            data={burnSparkline}
+            margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+          >
+            <defs>
+              <linearGradient id="burnGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-destructive)" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="var(--color-destructive)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="var(--color-destructive)"
+              strokeWidth={2}
+              fill="url(#burnGrad)"
+              dot={false}
+              isAnimationActive={true}
+              animationDuration={1200}
+            />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  hideLabel
+                  formatter={(value) => [`$${value}`, "Daily"]}
+                />
+              }
+              cursor={false}
+            />
+          </AreaChart>
+        </ChartContainer>
+      </div>
+    </Card>
+  );
+}
