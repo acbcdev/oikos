@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import type { Transaction } from "@/lib/data/wallet";
+import { formatInteger, stripNumberFormat } from "@/lib/utils/number-format";
 
 type TransactionType = "expense" | "income" | "transfer";
 
@@ -158,15 +159,7 @@ export function AddTransactionModal({
     [selectedAccount],
   );
 
-  const formatAmount = (raw: string) => {
-    if (!raw) return "";
-    const num = parseInt(raw, 10);
-    return isNaN(num)
-      ? ""
-      : new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(
-          num,
-        );
-  };
+  const formatAmount = (raw: string) => formatInteger(raw);
 
   const onSubmit = (data: TransactionFormValues) => {
     const amount = parseInt(data.amount, 10);
@@ -275,15 +268,13 @@ export function AddTransactionModal({
                         placeholder="0"
                         value={formatAmount(field.value)}
                         onChange={(e) => {
-                          const digits = e.target.value.replace(/\D/g, "");
-                          field.onChange(digits);
+                          field.onChange(e.target.value.replace(/\D/g, ""));
                         }}
                         onPaste={(e) => {
                           e.preventDefault();
-                          const pasted = e.clipboardData.getData("text");
-                          const digits = pasted
-                            .replace(/[.,]/g, "")
-                            .replace(/\D/g, "");
+                          const digits = stripNumberFormat(
+                            e.clipboardData.getData("text"),
+                          ).replace(/[.-]/g, "");
                           field.onChange(digits);
                         }}
                         className="bg-transparent border-none text-center text-6xl font-bold text-primary font-display placeholder:text-primary/20 outline-none w-full"

@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { formatLive, stripNumberFormat } from "@/lib/utils/number-format";
 
 const numberInputVariants = cva(
   "inline-flex w-full min-w-0 overflow-hidden border border-transparent bg-secondary/60 text-base transition-colors focus-within:ring-2 focus-within:ring-primary/50",
@@ -17,7 +18,7 @@ const numberInputVariants = cva(
     defaultVariants: {
       size: "default",
     },
-  }
+  },
 );
 
 const numberInputFieldVariants = cva(
@@ -32,14 +33,16 @@ const numberInputFieldVariants = cva(
     defaultVariants: {
       size: "default",
     },
-  }
+  },
 );
 
 interface NumberInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">,
+  extends
+    Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">,
     VariantProps<typeof numberInputVariants> {
   prefix?: string;
   onValueChange?: (value: string) => void;
+  format?: boolean;
 }
 
 export function NumberInput({
@@ -53,6 +56,7 @@ export function NumberInput({
   value,
   onChange,
   disabled,
+  format = true,
   ...props
 }: NumberInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -65,7 +69,9 @@ export function NumberInput({
 
   function nudge(dir: 1 | -1) {
     const current = parseFloat(String(value ?? "0")) || 0;
-    const next = String(clamp(parseFloat((current + dir * Number(step)).toFixed(10))));
+    const next = String(
+      clamp(parseFloat((current + dir * Number(step)).toFixed(10))),
+    );
     onValueChange?.(next);
     const nativeInput = inputRef.current;
     if (nativeInput) {
@@ -80,8 +86,10 @@ export function NumberInput({
   }
 
   const numValue = parseFloat(String(value ?? ""));
-  const atMax = max !== undefined && !isNaN(numValue) && numValue >= Number(max);
-  const atMin = min !== undefined && !isNaN(numValue) && numValue <= Number(min);
+  const atMax =
+    max !== undefined && !isNaN(numValue) && numValue >= Number(max);
+  const atMin =
+    min !== undefined && !isNaN(numValue) && numValue <= Number(min);
 
   const paddingX = size === "lg" ? "px-4" : "px-2.5";
 
@@ -89,12 +97,18 @@ export function NumberInput({
     <div
       className={cn(
         numberInputVariants({ size }),
-        disabled && "pointer-events-none cursor-not-allowed opacity-50 bg-input/50",
+        disabled &&
+          "pointer-events-none cursor-not-allowed opacity-50 bg-input/50",
         className,
       )}
     >
       {prefix && (
-        <span className={cn("shrink-0 select-none text-sm text-muted-foreground flex items-center", size === "lg" ? "pl-4" : "pl-2.5")}>
+        <span
+          className={cn(
+            "shrink-0 select-none text-sm text-muted-foreground flex items-center",
+            size === "lg" ? "pl-4" : "pl-2.5",
+          )}
+        >
           {prefix}
         </span>
       )}
@@ -102,12 +116,20 @@ export function NumberInput({
       <input
         {...props}
         ref={inputRef}
-        type="number"
-        step={step}
-        min={min}
-        max={max}
-        value={value}
-        onChange={onChange}
+        type={format ? "text" : "number"}
+        inputMode={format ? "decimal" : undefined}
+        step={format ? undefined : step}
+        min={format ? undefined : min}
+        max={format ? undefined : max}
+        value={format ? formatLive((value as string) ?? "") : value}
+        onChange={
+          format
+            ? (e) => {
+                const raw = stripNumberFormat(e.target.value);
+                onValueChange?.(raw);
+              }
+            : onChange
+        }
         disabled={disabled}
         className={cn(
           numberInputFieldVariants({ size }),
