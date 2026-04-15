@@ -41,7 +41,7 @@ export function DashboardLayout() {
       <header className="px-10 py-8 flex justify-between items-center sticky top-0 z-20 bg-background">
         <div className="flex flex-col">
           <h2 className="text-foreground font-display text-4xl font-bold tracking-tight uppercase leading-none">
-            Oikos
+            Analytics
           </h2>
           <div className="flex items-center gap-2 mt-2">
             <span className="size-1.5 rounded-full animate-pulse bg-positive" />
