@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Transaction } from "@/lib/data/wallet";
 import { formatCurrency } from "@/lib/data/wallet";
-import { useWalletStore } from "@/lib/store/wallet-store";
 import { AddTransactionModal } from "./add-transaction-modal";
 
 const categoryConfig: Record<
@@ -69,17 +68,22 @@ const categoryConfig: Record<
   },
 };
 
-export function TransactionRow({ transaction }: { transaction: Transaction }) {
+export function TransactionRow({
+  transaction,
+  onDeleteRequest,
+}: {
+  transaction: Transaction;
+  onDeleteRequest: (id: string) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const removeTransaction = useWalletStore((s) => s.removeTransaction);
   const config = categoryConfig[transaction.category];
   const Icon = config.icon;
   const isCredit = transaction.amount > 0;
 
   return (
     <>
-      <Card className="rounded-2xl py-0 bg-linear-to-br from-[rgba(28,37,59,0.4)] to-[rgba(19,26,42,0.6)] transition-all duration-200 ease-in-out hover:from-[rgba(37,46,68,0.5)] hover:to-[rgba(22,30,48,0.7)]">
+      <Card className={`rounded-2xl py-0 bg-linear-to-br from-[rgba(28,37,59,0.4)] to-[rgba(19,26,42,0.6)] transition-all duration-200 ease-in-out hover:from-[rgba(37,46,68,0.5)] hover:to-[rgba(22,30,48,0.7)]${transaction.status === "pending" ? " opacity-50" : ""}`}>
         <div className="flex items-center gap-4 px-5 py-4">
           <button
             onClick={() => setExpanded(!expanded)}
@@ -94,7 +98,7 @@ export function TransactionRow({ transaction }: { transaction: Transaction }) {
             </span>
 
             <hgroup className="flex-1 min-w-0">
-              <h4 className="text-[15px] font-display font-bold text-foreground truncate">
+              <h4 className="text-[15px] font-display font-bold text-foreground truncate" title={transaction.merchant}>
                 {transaction.merchant}
               </h4>
               <p className="text-xs text-muted-foreground font-display uppercase tracking-wider mt-0.5">
@@ -137,7 +141,7 @@ export function TransactionRow({ transaction }: { transaction: Transaction }) {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
-                onClick={() => removeTransaction(transaction.id)}
+                onClick={() => onDeleteRequest(transaction.id)}
               >
                 <Trash2 size={13} />
                 Delete

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Landmark, PiggyBank, TrendingUp, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,17 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { formatCurrencySplit, formatCurrency } from "@/lib/data/wallet";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import { AccountCard } from "./account-card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 const institutionIcons: Record<string, React.ElementType> = {
   checking: Landmark,
@@ -21,6 +32,17 @@ interface AccountsPaneProps {
 
 export function AccountsPane({ onAddAccount }: AccountsPaneProps) {
   const accounts = useWalletStore((s) => s.accounts);
+  const removeAccount = useWalletStore((s) => s.removeAccount);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const handleDeleteRequest = useCallback((id: string) => setDeleteId(id), []);
+
+  const handleDeleteConfirm = () => {
+    if (!deleteId) return;
+    removeAccount(deleteId);
+    toast.success("Account deleted");
+    setDeleteId(null);
+  };
 
   const liquidByCurrency = useMemo(() => {
     const map = new Map<string, number>();
@@ -107,12 +129,27 @@ export function AccountsPane({ onAddAccount }: AccountsPaneProps) {
               key={account.id}
               className="w-[calc((100%-2*1rem)/3)] shrink-0"
             >
-              <AccountCard account={account} />
+              <AccountCard account={account} onDeleteRequest={handleDeleteRequest} />
             </div>
           ))}
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
+
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete account?</AlertDialogTitle>
+            <AlertDialogDescription>All associated data will be removed. This cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleDeleteConfirm}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

@@ -31,7 +31,6 @@ import { Button } from "@/components/ui/button";
 import type { Account } from "@/lib/data/wallet";
 import { formatCurrencySplit, formatCurrency } from "@/lib/data/wallet";
 import { cn } from "@/lib/utils";
-import { useWalletStore } from "@/lib/store/wallet-store";
 import { useWalletFilterStore } from "@/lib/store/wallet-filter-store";
 import { EditAccountModal } from "./edit-account-modal";
 
@@ -47,10 +46,15 @@ const typeLabels: Record<Account["type"], string> = {
   brokerage: "Brokerage",
 };
 
-export function AccountCard({ account }: { account: Account }) {
+export function AccountCard({
+  account,
+  onDeleteRequest,
+}: {
+  account: Account;
+  onDeleteRequest: (id: string) => void;
+}) {
   const Icon = typeIcons[account.type];
   const { whole, decimal } = formatCurrencySplit(account.balance, account.currency);
-  const removeAccount = useWalletStore((s) => s.removeAccount);
   const [editOpen, setEditOpen] = useState(false);
   const isSelected = useWalletFilterStore((s) => s.selectedAccountIds.includes(account.id));
   const toggleAccount = useWalletFilterStore((s) => s.toggleAccount);
@@ -96,7 +100,7 @@ export function AccountCard({ account }: { account: Account }) {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => removeAccount(account.id)}
+                    onClick={() => onDeleteRequest(account.id)}
                     variant="destructive"
                   >
                     <Trash2 size={14} />

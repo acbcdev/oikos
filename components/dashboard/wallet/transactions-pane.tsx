@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Search,
   SlidersHorizontal,
@@ -14,11 +14,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import {
   useGroupedTransactions,
   useWalletStore,
 } from "@/lib/store/wallet-store";
+import { toast } from "sonner";
 import {
   useWalletFilterStore,
   type TxType,
@@ -49,8 +60,19 @@ function txTypeFromCategory(category: string): TxType {
 export function TransactionsPane() {
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const transactionGroups = useGroupedTransactions();
   const accounts = useWalletStore((s) => s.accounts);
+  const removeTransaction = useWalletStore((s) => s.removeTransaction);
+
+  const handleDeleteRequest = useCallback((id: string) => setDeleteId(id), []);
+
+  const handleDeleteConfirm = () => {
+    if (!deleteId) return;
+    removeTransaction(deleteId);
+    toast.success("Transaction deleted");
+    setDeleteId(null);
+  };
 
   const {
     selectedAccountIds,
@@ -325,6 +347,21 @@ export function TransactionsPane() {
 
       <AddTransactionModal open={modalOpen} onOpenChange={setModalOpen} />
 
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete transaction?</AlertDialogTitle>
+            <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleDeleteConfirm}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div>
         {filteredGroups.map((group) => (
           <section key={group.label} className="mt-4" aria-label={group.label}>
@@ -337,7 +374,7 @@ export function TransactionsPane() {
             <ul className="flex flex-col gap-3">
               {group.transactions.map((txn) => (
                 <li key={txn.id}>
-                  <TransactionRow transaction={txn} />
+                  <TransactionRow transaction={txn} onDeleteRequest={handleDeleteRequest} />
                 </li>
               ))}
             </ul>
