@@ -19,7 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatCurrency } from "@/lib/data/wallet";
+import { formatCurrency, DEFAULT_CATEGORIES } from "@/lib/data/wallet";
 import { useBudgetStore, type Budget } from "@/lib/store/budget-store";
 import { AddBudgetModal } from "./add-budget-modal";
 
@@ -27,10 +27,10 @@ const CATEGORY_CONFIG: Record<
   string,
   { icon: React.ElementType; subtitle: string }
 > = {
-  "Food & Drink": { icon: UtensilsCrossed, subtitle: "Personal Dining" },
-  Transport: { icon: Car, subtitle: "Commute & Gas" },
-  Shopping: { icon: ShoppingBag, subtitle: "Purchases" },
-  Entertainment: { icon: Tv, subtitle: "Leisure & Social" },
+  food: { icon: UtensilsCrossed, subtitle: "Personal Dining" },
+  transport: { icon: Car, subtitle: "Commute & Gas" },
+  shopping: { icon: ShoppingBag, subtitle: "Purchases" },
+  entertainment: { icon: Tv, subtitle: "Leisure & Social" },
 };
 
 function getDaysLeftInMonth() {
@@ -53,10 +53,11 @@ export function BudgetCard({ budget }: BudgetCardProps) {
   const [editOpen, setEditOpen] = useState(false);
   const removeBudget = useBudgetStore((s) => s.removeBudget);
 
-  const cfg = CATEGORY_CONFIG[budget.category] ?? {
+  const cfg = CATEGORY_CONFIG[budget.categoryId] ?? {
     icon: ShoppingBag,
     subtitle: "Other",
   };
+  const categoryName = DEFAULT_CATEGORIES.find((c) => c.id === budget.categoryId)?.name ?? budget.categoryId;
   const Icon = cfg.icon;
   const barWidth = Math.min(budget.percent, 100);
   const isDanger = budget.isOver || budget.percent >= 90;
@@ -84,7 +85,7 @@ export function BudgetCard({ budget }: BudgetCardProps) {
               </span>
               <div className="min-w-0">
                 <h3 className="font-display font-bold text-xl text-foreground truncate">
-                  {budget.category}
+                  {categoryName}
                 </h3>
                 <p className="text-xs text-muted-foreground uppercase tracking-tighter">
                   {cfg.subtitle}
@@ -97,7 +98,6 @@ export function BudgetCard({ budget }: BudgetCardProps) {
                 render={
                   <Button
                     variant="ghost"
-                    size="icon"
                     size="icon-sm"
                     className="shrink-0"
                   />

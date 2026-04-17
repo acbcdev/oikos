@@ -21,23 +21,17 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import {
-  useBudgetStore,
-  type Budget,
-  type BudgetCategory,
-} from "@/lib/store/budget-store";
+import { useBudgetStore, type Budget } from "@/lib/store/budget-store";
 import { useAvailableCurrencies } from "@/lib/store/wallet-store";
+import { DEFAULT_CATEGORIES } from "@/lib/data/wallet";
 
-const BUDGET_CATEGORIES: BudgetCategory[] = [
-  "Food & Drink",
-  "Transport",
-  "Shopping",
-  "Entertainment",
-];
+const BUDGET_CATEGORIES = DEFAULT_CATEGORIES.filter(
+  (c) => c.id !== "income" && c.id !== "transfer",
+);
 
 const budgetSchema = z.object({
   currency: z.string().min(1, "Select a currency"),
-  category: z.enum(["Food & Drink", "Transport", "Shopping", "Entertainment"]),
+  categoryId: z.string().min(1, "Select a category"),
   limit: z.string().min(1, "Amount is required"),
 });
 
@@ -70,7 +64,7 @@ export function AddBudgetModal({
     resolver: zodResolver(budgetSchema),
     defaultValues: {
       currency: currencies[0] ?? "",
-      category: "Food & Drink",
+      categoryId: BUDGET_CATEGORIES[0]?.id ?? "",
       limit: "",
     },
   });
@@ -85,13 +79,13 @@ export function AddBudgetModal({
     if (budget) {
       form.reset({
         currency: budget.currency,
-        category: budget.category,
+        categoryId: budget.categoryId,
         limit: budget.limit.toString(),
       });
     } else {
       form.reset({
         currency: currencies[0] ?? "",
-        category: "Food & Drink",
+        categoryId: BUDGET_CATEGORIES[0]?.id ?? "",
         limit: "",
       });
     }
@@ -118,14 +112,14 @@ export function AddBudgetModal({
     const limit = parseInt(data.limit, 10);
     if (budget) {
       updateBudget(budget.id, {
-        category: data.category,
+        categoryId: data.categoryId,
         limit,
         currency: data.currency,
       });
     } else {
       addBudget({
         id: `budget-${Date.now()}`,
-        category: data.category,
+        categoryId: data.categoryId,
         limit,
         currency: data.currency,
       });
@@ -166,6 +160,7 @@ export function AddBudgetModal({
                         type="text"
                         inputMode="numeric"
                         placeholder="0"
+                        autoFocus
                         value={formatAmount(field.value)}
                         onChange={(e) => {
                           const digits = e.target.value.replace(/\D/g, "");
@@ -216,7 +211,7 @@ export function AddBudgetModal({
             {/* Category */}
             <FormField
               control={form.control}
-              name="category"
+              name="categoryId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
@@ -227,13 +222,13 @@ export function AddBudgetModal({
                     >
                       <SelectTrigger>
                         <span className="flex flex-1 text-left text-sm truncate">
-                          {field.value || "Select category"}
+                          {BUDGET_CATEGORIES.find((c) => c.id === field.value)?.name ?? "Select category"}
                         </span>
                       </SelectTrigger>
                       <SelectContent>
                         {BUDGET_CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
