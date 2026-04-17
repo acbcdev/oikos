@@ -24,3 +24,7 @@ export function startOfMonth(y: number, m: number): Date {
 export function endOfMonth(y: number, m: number): Date {
   return new Date(y, m + 1, 0); // day 0 = last day of previous month
 }
+
+export function formatMonthYear(date: Date): string {
+  return date.toLocaleDateString("en", { month: "long", year: "numeric" });
+}

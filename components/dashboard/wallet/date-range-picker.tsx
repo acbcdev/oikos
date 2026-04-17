@@ -12,6 +12,7 @@ import {
   getWeekRange,
   startOfMonth,
   endOfMonth,
+  formatMonthYear,
 } from "@/lib/utils/date-helpers";
 import {
   type ViewMode,
@@ -143,7 +144,7 @@ export function DateRangePicker({
 
   function getNavLabel(): string {
     if (mode === "custom" || mode === "weeks")
-      return viewMonth.toLocaleString("en", { month: "long", year: "numeric" });
+      return formatMonthYear(viewMonth);
     if (mode === "months") return String(viewYear);
     return `${viewDecadeStart} – ${viewDecadeStart + 9}`;
   }
