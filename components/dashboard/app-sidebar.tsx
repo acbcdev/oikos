@@ -3,7 +3,6 @@
 import { LayoutDashboard, Wallet, PieChart, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +12,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSkeleton,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
@@ -26,11 +24,6 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <Sidebar className="border-r border-border/10 bg-card">
@@ -53,11 +46,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
-              {!mounted
-                ? navItems.map(({ label }) => (
-                    <SidebarMenuSkeleton key={label} showIcon />
-                  ))
-                : navItems.map(({ icon: Icon, label, href }) => {
+              {navItems.map(({ icon: Icon, label, href }) => {
                     const isActive =
                       pathname === href ||
                       (href !== "/" && pathname.startsWith(href));
