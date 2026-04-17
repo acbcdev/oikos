@@ -1,8 +1,8 @@
-import * as React from "react"
-import { Input as InputPrimitive } from "@base-ui/react/input"
-import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react";
+import { Input as InputPrimitive } from "@base-ui/react/input";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const inputVariants = cva(
   "w-full min-w-0 border border-transparent bg-secondary/60 transition-colors outline-none file:inline-flex file:border-0 file:bg-transparent file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:ring-2 aria-invalid:ring-destructive/50 md:text-sm",
@@ -14,17 +14,18 @@ const inputVariants = cva(
       },
     },
     defaultVariants: {
-      size: "default",
+      size: "lg",
     },
-  }
-)
+  },
+);
 
 function Input({
   className,
   type,
   size,
   ...props
-}: Omit<React.ComponentProps<"input">, "size"> & VariantProps<typeof inputVariants>) {
+}: Omit<React.ComponentProps<"input">, "size"> &
+  VariantProps<typeof inputVariants>) {
   return (
     <InputPrimitive
       type={type}
@@ -32,7 +33,7 @@ function Input({
       className={cn(inputVariants({ size }), className)}
       {...props}
     />
-  )
+  );
 }
 
-export { Input, inputVariants }
+export { Input, inputVariants };

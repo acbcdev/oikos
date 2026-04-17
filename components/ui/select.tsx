@@ -30,7 +30,7 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
 
 function SelectTrigger({
   className,
-  size = "default",
+  size = "lg",
   children,
   ...props
 }: SelectPrimitive.Trigger.Props & {
