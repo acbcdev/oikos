@@ -4,6 +4,7 @@ import { useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Plus, Pencil, Calendar } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/form";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import type { Transaction } from "@/lib/data/wallet";
+import { formatCurrency } from "@/lib/data/wallet";
 import { formatInteger, stripNumberFormat } from "@/lib/utils/number-format";
 
 type TransactionType = "expense" | "income" | "transfer";
@@ -162,40 +164,46 @@ export function AddTransactionModal({
   const formatAmount = (raw: string) => formatInteger(raw);
 
   const onSubmit = (data: TransactionFormValues) => {
-    const amount = parseInt(data.amount, 10);
-    const signedAmount = data.type === "income" ? amount : -amount;
-    const today = new Date().toISOString().slice(0, 10);
+    try {
+      const amount = parseInt(data.amount, 10);
+      const signedAmount = data.type === "income" ? amount : -amount;
+      const today = new Date().toISOString().slice(0, 10);
 
-    const patch = {
-      merchant:
-        data.description ||
-        (data.type === "transfer" ? "Account Transfer" : "Manual Entry"),
-      category:
-        data.type === "transfer"
-          ? "Transfer"
-          : data.type === "income"
-            ? "Income"
-            : (data.category as Transaction["category"]),
-      subcategory: data.type === "transfer" ? "Transfer" : data.category,
-      paymentMethod: `Card **** ${selectedAccount?.id.slice(-4) ?? "0000"}`,
-      amount: signedAmount,
-      accountId: data.fromAccount,
-      status: "pending" as const,
-    };
+      const patch = {
+        merchant:
+          data.description ||
+          (data.type === "transfer" ? "Account Transfer" : "Manual Entry"),
+        category:
+          data.type === "transfer"
+            ? "Transfer"
+            : data.type === "income"
+              ? "Income"
+              : (data.category as Transaction["category"]),
+        subcategory: data.type === "transfer" ? "Transfer" : data.category,
+        paymentMethod: `Card **** ${selectedAccount?.id.slice(-4) ?? "0000"}`,
+        amount: signedAmount,
+        accountId: data.fromAccount,
+        status: "pending" as const,
+      };
 
-    if (transaction) {
-      updateTransaction(transaction.id, patch);
-    } else {
-      addTransaction({
-        ...patch,
-        id: `txn-${Date.now()}`,
-        date: today,
-        referenceCode: `#TRX-${Date.now().toString(36).toUpperCase()}`,
-      });
+      if (transaction) {
+        updateTransaction(transaction.id, patch);
+        toast.success("Transaction updated");
+      } else {
+        addTransaction({
+          ...patch,
+          id: `txn-${Date.now()}`,
+          date: today,
+          referenceCode: `#TRX-${Date.now().toString(36).toUpperCase()}`,
+        });
+        toast.success("Transaction added");
+      }
+
+      onOpenChange(false);
+      form.reset();
+    } catch {
+      toast.error("Something went wrong. Please try again.");
     }
-
-    onOpenChange(false);
-    form.reset();
   };
 
   return (
@@ -302,17 +310,21 @@ export function AddTransactionModal({
                           <Select
                             value={field.value}
                             onValueChange={(v) => v && field.onChange(v)}
+                            disabled={accounts.length === 0}
                           >
                             <SelectTrigger>
                               <span className="flex flex-1 text-left text-sm truncate">
-                                {accounts.find((a) => a.id === field.value)?.name ?? "Select account"}
+                                {accounts.length === 0 ? "Add an account first" : (accounts.find((a) => a.id === field.value)?.name ?? "Select account")}
                               </span>
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
                                 {accounts.map((acc) => (
                                   <SelectItem key={acc.id} value={acc.id}>
-                                    {acc.name}
+                                    <span className="flex flex-col">
+                                      <span>{acc.name}</span>
+                                      <span className="text-xs text-muted-foreground capitalize">{acc.type} · {formatCurrency(acc.balance, acc.currency)}</span>
+                                    </span>
                                   </SelectItem>
                                 ))}
                               </SelectGroup>
@@ -333,16 +345,20 @@ export function AddTransactionModal({
                           <Select
                             value={field.value ?? ""}
                             onValueChange={(v) => v && field.onChange(v)}
+                            disabled={accounts.length === 0}
                           >
                             <SelectTrigger>
                               <span className="flex flex-1 text-left text-sm truncate">
-                                {accounts.find((a) => a.id === field.value)?.name ?? "Select account"}
+                                {accounts.length === 0 ? "Add an account first" : (accounts.find((a) => a.id === field.value)?.name ?? "Select account")}
                               </span>
                             </SelectTrigger>
                             <SelectContent>
                               {accounts.map((acc) => (
                                 <SelectItem key={acc.id} value={acc.id}>
-                                  {acc.name}
+                                  <span className="flex flex-col">
+                                    <span>{acc.name}</span>
+                                    <span className="text-xs text-muted-foreground capitalize">{acc.type} · {formatCurrency(acc.balance, acc.currency)}</span>
+                                  </span>
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -364,16 +380,20 @@ export function AddTransactionModal({
                         <Select
                           value={field.value}
                           onValueChange={(v) => v && field.onChange(v)}
+                          disabled={accounts.length === 0}
                         >
                           <SelectTrigger>
                             <span className="flex flex-1 text-left text-sm truncate">
-                              {accounts.find((a) => a.id === field.value)?.name ?? "Select account"}
+                              {accounts.length === 0 ? "Add an account first" : (accounts.find((a) => a.id === field.value)?.name ?? "Select account")}
                             </span>
                           </SelectTrigger>
                           <SelectContent>
                             {accounts.map((acc) => (
                               <SelectItem key={acc.id} value={acc.id}>
-                                {acc.name}
+                                <span className="flex flex-col">
+                                  <span>{acc.name}</span>
+                                  <span className="text-xs text-muted-foreground capitalize">{acc.type} · {formatCurrency(acc.balance, acc.currency)}</span>
+                                </span>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -417,18 +437,10 @@ export function AddTransactionModal({
                     )}
                   />
                   <div className="space-y-2">
-                    <label>Date</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        readOnly
-                        value="Today"
-                        className="w-full bg-white/5 border-none rounded-lg py-3 px-4 pr-10 text-foreground focus:ring-1 focus:ring-primary text-sm font-display outline-none"
-                      />
-                      <Calendar
-                        size={14}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-                      />
+                    <label className="text-sm font-medium text-foreground">Date</label>
+                    <div className="flex items-center gap-2 bg-white/5 rounded-lg py-3 px-4 text-sm font-display text-muted-foreground">
+                      <Calendar size={14} className="shrink-0" />
+                      Today
                     </div>
                   </div>
                 </div>
@@ -477,6 +489,7 @@ export function AddTransactionModal({
             {/* CTA */}
             <Button
               type="submit"
+              disabled={form.formState.isSubmitting}
               className="w-full font-display font-bold tracking-wider uppercase mt-2"
             >
               {transaction ? <Pencil size={18} /> : <Plus size={18} />}
