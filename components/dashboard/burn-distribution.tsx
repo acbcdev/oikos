@@ -224,9 +224,17 @@ export function BurnDistribution({
               {categories.map((cat, i) => (
                 <div
                   key={cat.label}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${cat.label}: ${cat.percent}%`}
                   className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-default border border-transparent hover:bg-accent/40 hover:border-white/8"
                   onMouseEnter={() => setActiveIndex(i)}
                   onMouseLeave={() => setActiveIndex(undefined)}
+                  onFocus={() => setActiveIndex(i)}
+                  onBlur={() => setActiveIndex(undefined)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setActiveIndex(i);
+                  }}
                 >
                   <div
                     className="w-2.5 h-2.5 rounded-full shrink-0"

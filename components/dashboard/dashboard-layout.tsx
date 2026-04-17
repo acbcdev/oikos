@@ -70,6 +70,7 @@ export function DashboardLayout() {
           <Button
             variant="ghost"
             size="icon-lg"
+            aria-label="Notifications"
           >
             <Bell size={24} />
           </Button>
