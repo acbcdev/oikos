@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { SidebarOpenTrigger, ContentPadding } from "@/components/dashboard/sidebar-open-trigger";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -45,6 +46,7 @@ export default function RootLayout({
             </SidebarProvider>
           </div>
         </TooltipProvider>
+        <Toaster />
       </body>
     </html>
   );
