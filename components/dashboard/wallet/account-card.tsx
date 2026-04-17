@@ -5,9 +5,6 @@ import {
   Landmark,
   PiggyBank,
   TrendingUp,
-  ArrowUp,
-  ArrowDown,
-  Percent,
   MoreVertical,
   Pencil,
   Trash2,
@@ -29,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import type { Account } from "@/lib/data/wallet";
-import { formatCurrencySplit, formatCurrency } from "@/lib/data/wallet";
+import { formatCurrencySplit } from "@/lib/data/wallet";
 import { cn } from "@/lib/utils";
 import { useWalletFilterStore } from "@/lib/store/wallet-filter-store";
 import { EditAccountModal } from "./edit-account-modal";
@@ -37,13 +34,13 @@ import { EditAccountModal } from "./edit-account-modal";
 const typeIcons: Record<Account["type"], React.ElementType> = {
   checking: Landmark,
   savings: PiggyBank,
-  brokerage: TrendingUp,
+  investment: TrendingUp,
 };
 
 const typeLabels: Record<Account["type"], string> = {
   checking: "Main Checking",
   savings: "Savings",
-  brokerage: "Brokerage",
+  investment: "Investment",
 };
 
 export function AccountCard({
@@ -126,32 +123,6 @@ export function AccountCard({
           <span className="inline-flex items-center gap-1.5 text-xs font-display text-muted-foreground">
             {typeLabels[account.type]}
           </span>
-          {account.monthlyChange !== undefined && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-display font-bold text-positive bg-positive/10 px-3 py-1.5 rounded-lg">
-              <ArrowUp size={12} />+{formatCurrency(account.monthlyChange)}
-              <span className="text-positive/70 font-body font-normal ml-1">
-                This Month
-              </span>
-            </span>
-          )}
-          {account.apy !== undefined && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-display font-bold text-positive bg-positive/10 px-3 py-1.5 rounded-lg">
-              <Percent size={12} />
-              {account.apy}% APY
-            </span>
-          )}
-          {account.dailyChange !== undefined && (
-            <span
-              className={`inline-flex items-center gap-1.5 text-xs font-display font-bold px-3 py-1.5 rounded-lg ${
-                account.dailyChange >= 0
-                  ? "text-positive bg-positive/10"
-                  : "text-negative bg-negative/10"
-              }`}
-            >
-              <ArrowDown size={12} />
-              {formatCurrency(account.dailyChange)} today
-            </span>
-          )}
         </CardFooter>
       </Card>
 

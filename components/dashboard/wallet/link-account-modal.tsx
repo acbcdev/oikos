@@ -7,6 +7,7 @@ import { Wallet } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import {
   Select,
   SelectContent,
@@ -47,7 +48,6 @@ const accountSchema = z.object({
 
 type AccountFormValues = z.infer<typeof accountSchema>;
 
-
 export function LinkAccountModal({
   open,
   onOpenChange,
@@ -73,12 +73,6 @@ export function LinkAccountModal({
     new Intl.NumberFormat("en-US", { style: "currency", currency })
       .formatToParts(0)
       .find((p) => p.type === "currency")?.value ?? "$";
-
-  const formatBalance = (raw: string) => {
-    if (!raw) return "";
-    const num = parseInt(raw, 10);
-    return isNaN(num) ? "" : num.toLocaleString("en-US");
-  };
 
   const onSubmit = (data: AccountFormValues) => {
     const acc: Account = {
@@ -120,15 +114,15 @@ export function LinkAccountModal({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Account Name
-                  </FormLabel>
+                  <FormLabel>Account Name</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
+                      size={"lg"}
                       placeholder="e.g. Main Checking"
+                      autoFocus
                       {...field}
-                      className="w-full bg-white/5 border-none rounded-lg py-3 px-4 h-auto text-foreground placeholder:text-muted-foreground/40 focus:ring-1 focus:ring-primary text-sm font-body"
+                      className="w-full border-none rounded-lg py-3 px-4"
                     />
                   </FormControl>
                   <FormMessage />
@@ -141,23 +135,18 @@ export function LinkAccountModal({
               name="accountType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Account Type
-                  </FormLabel>
+                  <FormLabel>Account Type</FormLabel>
                   <FormControl>
                     <Select
                       value={field.value}
                       onValueChange={(v) => v && field.onChange(v)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger size="lg">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {accountTypes.map((t) => (
-                          <SelectItem
-                            key={t}
-                            value={t}
-                                                      >
+                          <SelectItem key={t} value={t}>
                             {t}
                           </SelectItem>
                         ))}
@@ -180,15 +169,12 @@ export function LinkAccountModal({
                       value={field.value}
                       onValueChange={(v) => v && field.onChange(v)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger size="lg">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {currencies.map((c) => (
-                          <SelectItem
-                            key={c.code}
-                            value={c.code}
-                                                      >
+                          <SelectItem key={c.code} value={c.code}>
                             {c.label}
                           </SelectItem>
                         ))}
@@ -205,34 +191,15 @@ export function LinkAccountModal({
               name="balance"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Initial Balance
-                  </FormLabel>
+                  <FormLabel>Initial Balance</FormLabel>
                   <FormControl>
-                    <div className="flex items-center bg-white/5 rounded-lg px-4 py-3 focus-within:ring-1 focus-within:ring-primary">
-                      <span className="text-sm font-display font-bold text-muted-foreground mr-2">
-                        {currencySymbol}
-                      </span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="0.00"
-                        value={formatBalance(field.value ?? "")}
-                        onChange={(e) => {
-                          const digits = e.target.value.replace(/\D/g, "");
-                          field.onChange(digits);
-                        }}
-                        onPaste={(e) => {
-                          e.preventDefault();
-                          const digits = e.clipboardData
-                            .getData("text")
-                            .replace(/[.,]/g, "")
-                            .replace(/\D/g, "");
-                          field.onChange(digits);
-                        }}
-                        className="bg-transparent border-none text-foreground text-sm font-body outline-none w-full placeholder:text-muted-foreground/40"
-                      />
-                    </div>
+                    <NumberInput
+                      size="lg"
+                      prefix={currencySymbol}
+                      placeholder="0.00"
+                      value={field.value ?? ""}
+                      onValueChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

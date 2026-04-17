@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/form";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import type { Transaction } from "@/lib/data/wallet";
-import { formatCurrency } from "@/lib/data/wallet";
+import { formatCurrency, DEFAULT_CATEGORIES } from "@/lib/data/wallet";
 import { formatInteger, stripNumberFormat } from "@/lib/utils/number-format";
 
 type TransactionType = "expense" | "income" | "transfer";
@@ -37,14 +37,9 @@ const typeOptions: { value: TransactionType; label: string }[] = [
   { value: "transfer", label: "Transfer" },
 ];
 
-const categories = [
-  "Shopping",
-  "Food & Drink",
-  "Transport",
-  "Entertainment",
-  "Transfer",
-  "Income",
-] as const;
+const EXPENSE_CATEGORIES = DEFAULT_CATEGORIES.filter(
+  (c) => c.id !== "income" && c.id !== "transfer",
+);
 
 const transactionSchema = z
   .object({
@@ -52,7 +47,7 @@ const transactionSchema = z
     amount: z.string().min(1, "Amount is required"),
     fromAccount: z.string().min(1, "Select an account"),
     toAccount: z.string().optional(),
-    category: z.string().min(1, "Select a category"),
+    categoryId: z.string().min(1, "Select a category"),
     description: z.string().max(200, "Max 200 characters").optional(),
   })
   .refine(
@@ -87,7 +82,7 @@ export function AddTransactionModal({
       : accounts[0]?.id) ?? "";
 
   const inferType = (tx: Transaction): TransactionType => {
-    if (tx.category === "Transfer") return "transfer";
+    if (tx.categoryId === "transfer") return "transfer";
     if (tx.amount > 0) return "income";
     return "expense";
   };
@@ -99,16 +94,16 @@ export function AddTransactionModal({
           type: inferType(transaction),
           amount: Math.abs(transaction.amount).toString(),
           fromAccount: transaction.accountId,
-          toAccount: accounts.find((a) => a.id !== transaction.accountId)?.id ?? "",
-          category: transaction.category,
-          description: transaction.merchant,
+          toAccount: transaction.toAccountId ?? accounts.find((a) => a.id !== transaction.accountId)?.id ?? "",
+          categoryId: transaction.categoryId,
+          description: transaction.description,
         }
       : {
           type: "expense",
           amount: "",
           fromAccount: defaultAccountId,
           toAccount: accounts.find((a) => a.id !== defaultAccountId)?.id ?? "",
-          category: categories[0],
+          categoryId: EXPENSE_CATEGORIES[0]?.id ?? "",
           description: "",
         },
   });
@@ -120,9 +115,9 @@ export function AddTransactionModal({
         type: inferType(transaction),
         amount: Math.abs(transaction.amount).toString(),
         fromAccount: transaction.accountId,
-        toAccount: accounts.find((a) => a.id !== transaction.accountId)?.id ?? "",
-        category: transaction.category,
-        description: transaction.merchant,
+        toAccount: transaction.toAccountId ?? accounts.find((a) => a.id !== transaction.accountId)?.id ?? "",
+        categoryId: transaction.categoryId,
+        description: transaction.description,
       });
     } else {
       const id =
@@ -134,7 +129,7 @@ export function AddTransactionModal({
         amount: "",
         fromAccount: id,
         toAccount: accounts.find((a) => a.id !== id)?.id ?? "",
-        category: categories[0],
+        categoryId: EXPENSE_CATEGORIES[0]?.id ?? "",
         description: "",
       });
     }
@@ -169,21 +164,19 @@ export function AddTransactionModal({
       const signedAmount = data.type === "income" ? amount : -amount;
       const today = new Date().toISOString().slice(0, 10);
 
+      const categoryId =
+        data.type === "transfer"
+          ? "transfer"
+          : data.type === "income"
+            ? "income"
+            : data.categoryId;
+
       const patch = {
-        merchant:
-          data.description ||
-          (data.type === "transfer" ? "Account Transfer" : "Manual Entry"),
-        category:
-          data.type === "transfer"
-            ? "Transfer"
-            : data.type === "income"
-              ? "Income"
-              : (data.category as Transaction["category"]),
-        subcategory: data.type === "transfer" ? "Transfer" : data.category,
-        paymentMethod: `Card **** ${selectedAccount?.id.slice(-4) ?? "0000"}`,
+        description: data.description || (data.type === "transfer" ? "Account Transfer" : "Manual Entry"),
+        categoryId,
         amount: signedAmount,
         accountId: data.fromAccount,
-        status: "pending" as const,
+        toAccountId: data.type === "transfer" ? data.toAccount : undefined,
       };
 
       if (transaction) {
@@ -194,7 +187,6 @@ export function AddTransactionModal({
           ...patch,
           id: `txn-${Date.now()}`,
           date: today,
-          referenceCode: `#TRX-${Date.now().toString(36).toUpperCase()}`,
         });
         toast.success("Transaction added");
       }
@@ -274,6 +266,7 @@ export function AddTransactionModal({
                         type="text"
                         inputMode="numeric"
                         placeholder="0"
+                        autoFocus
                         value={formatAmount(field.value)}
                         onChange={(e) => {
                           field.onChange(e.target.value.replace(/\D/g, ""));
@@ -405,11 +398,11 @@ export function AddTransactionModal({
                 />
               )}
 
-              {type !== "transfer" && (
+              {type === "expense" && (
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="category"
+                    name="categoryId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category</FormLabel>
@@ -420,13 +413,13 @@ export function AddTransactionModal({
                           >
                             <SelectTrigger>
                               <span className="flex flex-1 text-left text-sm truncate">
-                                {field.value || "Select category"}
+                                {EXPENSE_CATEGORIES.find((c) => c.id === field.value)?.name ?? "Select category"}
                               </span>
                             </SelectTrigger>
                             <SelectContent>
-                              {categories.map((cat) => (
-                                <SelectItem key={cat} value={cat}>
-                                  {cat}
+                              {EXPENSE_CATEGORIES.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id}>
+                                  {cat.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>

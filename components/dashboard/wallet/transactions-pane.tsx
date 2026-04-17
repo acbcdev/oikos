@@ -29,6 +29,7 @@ import {
   useGroupedTransactions,
   useWalletStore,
 } from "@/lib/store/wallet-store";
+import { DEFAULT_CATEGORIES } from "@/lib/data/wallet";
 import { toast } from "sonner";
 import {
   useWalletFilterStore,
@@ -38,12 +39,9 @@ import { TransactionRow } from "./transaction-row";
 import { AddTransactionModal } from "./add-transaction-modal";
 import { DateRangePicker } from "./date-range-picker";
 
-const EXPENSE_CATEGORIES = [
-  "Food & Drink",
-  "Transport",
-  "Shopping",
-  "Entertainment",
-] as const;
+const EXPENSE_CATEGORIES = DEFAULT_CATEGORIES.filter(
+  (c) => c.id !== "income" && c.id !== "transfer",
+);
 
 const TX_TYPES: { value: TxType; label: string }[] = [
   { value: "income", label: "Income" },
@@ -51,9 +49,9 @@ const TX_TYPES: { value: TxType; label: string }[] = [
   { value: "transfer", label: "Transfer" },
 ];
 
-function txTypeFromCategory(category: string): TxType {
-  if (category === "Income") return "income";
-  if (category === "Transfer") return "transfer";
+function txTypeFromCategoryId(categoryId: string): TxType {
+  if (categoryId === "income") return "income";
+  if (categoryId === "transfer") return "transfer";
   return "expense";
 }
 
@@ -115,9 +113,8 @@ export function TransactionsPane() {
         transactions: group.transactions.filter((t) => {
           if (
             q &&
-            !t.merchant.toLowerCase().includes(q) &&
-            !t.category.toLowerCase().includes(q) &&
-            !t.subcategory.toLowerCase().includes(q)
+            !t.description.toLowerCase().includes(q) &&
+            !t.categoryId.toLowerCase().includes(q)
           )
             return false;
           if (
@@ -127,12 +124,12 @@ export function TransactionsPane() {
             return false;
           if (
             selectedCategories.length > 0 &&
-            !selectedCategories.includes(t.category)
+            !selectedCategories.includes(t.categoryId)
           )
             return false;
           if (
             selectedTypes.length > 0 &&
-            !selectedTypes.includes(txTypeFromCategory(t.category))
+            !selectedTypes.includes(txTypeFromCategoryId(t.categoryId))
           )
             return false;
           if (dateFrom && t.date < dateFrom) return false;
@@ -161,11 +158,12 @@ export function TransactionsPane() {
       onRemove: () => useWalletFilterStore.getState().toggleAccount(id),
     });
   }
-  for (const cat of selectedCategories) {
+  for (const catId of selectedCategories) {
+    const catName = DEFAULT_CATEGORIES.find((c) => c.id === catId)?.name ?? catId;
     chips.push({
-      key: `cat:${cat}`,
-      label: cat,
-      onRemove: () => toggleCategory(cat),
+      key: `cat:${catId}`,
+      label: catName,
+      onRemove: () => toggleCategory(catId),
     });
   }
   for (const type of selectedTypes) {
@@ -255,16 +253,16 @@ export function TransactionsPane() {
               <div className="flex flex-wrap gap-2">
                 {EXPENSE_CATEGORIES.map((cat) => (
                   <button
-                    key={cat}
-                    onClick={() => toggleCategory(cat)}
+                    key={cat.id}
+                    onClick={() => toggleCategory(cat.id)}
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-xs font-display font-bold uppercase tracking-wider transition-colors",
-                      selectedCategories.includes(cat)
+                      selectedCategories.includes(cat.id)
                         ? "bg-neon text-black"
                         : "bg-secondary text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    {cat}
+                    {cat.name}
                   </button>
                 ))}
               </div>
