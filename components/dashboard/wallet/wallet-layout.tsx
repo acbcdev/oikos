@@ -16,12 +16,25 @@ import { TransactionsPane } from "./transactions-pane";
 import { LinkAccountModal } from "./link-account-modal";
 
 export function WalletLayout() {
+  const [hydrated, setHydrated] = useState(false);
+
   useEffect(() => {
+    const unsub = useWalletStore.persist.onFinishHydration(() => setHydrated(true));
     useWalletStore.persist.rehydrate();
+    return unsub;
   }, []);
 
   const hasAccounts = useWalletStore((s) => s.accounts.length > 0);
   const [linkModalOpen, setLinkModalOpen] = useState(false);
+
+  if (!hydrated) {
+    return (
+      <main className="flex flex-col px-8 py-8 gap-8 min-h-screen">
+        <div className="h-48 rounded-3xl bg-white/5" />
+        <div className="h-96 rounded-3xl bg-white/5" />
+      </main>
+    );
+  }
 
   return (
     <main className="flex flex-col px-8 py-8 gap-8 min-h-screen">
