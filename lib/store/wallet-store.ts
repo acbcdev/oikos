@@ -3,8 +3,10 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
   type Account,
+  type Category,
   type Transaction,
   type TransactionGroup,
+  DEFAULT_CATEGORIES,
 } from "@/lib/data/wallet";
 import type { Timeframe, MonthlyNetWorth } from "@/lib/data/reports";
 
@@ -17,6 +19,7 @@ function toMonthStr(year: number, month: number): string {
 interface WalletState {
   accounts: Account[];
   transactions: Transaction[];
+  categories: Category[];
   lastUsedAccountId: string | null;
 }
 
@@ -30,6 +33,8 @@ type WalletActions = {
   addAccount: (acc: Account) => void;
   updateAccount: (id: string, patch: Partial<Omit<Account, "id">>) => void;
   removeAccount: (id: string) => void;
+  addCategory: (cat: Category) => void;
+  removeCategory: (id: string) => void;
 };
 
 export const useWalletStore = create<WalletState & WalletActions>()(
@@ -37,16 +42,17 @@ export const useWalletStore = create<WalletState & WalletActions>()(
     (set) => ({
       accounts: [],
       transactions: [],
+      categories: DEFAULT_CATEGORIES,
       lastUsedAccountId: null,
       addTransaction: (tx) =>
         set((state) => ({
           transactions: [tx, ...state.transactions],
           lastUsedAccountId: tx.accountId,
-          accounts: state.accounts.map((a) =>
-            a.id === tx.accountId
-              ? { ...a, balance: a.balance + tx.amount }
-              : a,
-          ),
+          accounts: state.accounts.map((a) => {
+            if (a.id === tx.accountId) return { ...a, balance: a.balance + tx.amount };
+            if (tx.toAccountId && a.id === tx.toAccountId) return { ...a, balance: a.balance + Math.abs(tx.amount) };
+            return a;
+          }),
         })),
       updateTransaction: (id, patch) =>
         set((state) => {
@@ -104,6 +110,12 @@ export const useWalletStore = create<WalletState & WalletActions>()(
           accounts: state.accounts.filter((a) => a.id !== id),
           transactions: state.transactions.filter((t) => t.accountId !== id),
         })),
+      addCategory: (cat) =>
+        set((state) => ({ categories: [...state.categories, cat] })),
+      removeCategory: (id) =>
+        set((state) => ({
+          categories: state.categories.filter((c) => c.id !== id),
+        })),
     }),
     {
       name: "wallet-storage",
@@ -160,8 +172,11 @@ export function useAvailableCurrencies(): string[] {
 export function useDashboardMetrics(filterCurrency: string | null = null) {
   const allAccounts = useWalletStore((s) => s.accounts);
   const allTransactions = useWalletStore((s) => s.transactions);
+  const allCategories = useWalletStore((s) => s.categories);
 
   return useMemo(() => {
+    const catName = (id: string) => allCategories.find((c) => c.id === id)?.name ?? id;
+
     const accounts = filterCurrency
       ? allAccounts.filter((a) => a.currency === filterCurrency)
       : allAccounts;
@@ -236,8 +251,9 @@ export function useDashboardMetrics(filterCurrency: string | null = null) {
     // Category breakdown (30-day expenses, excluding Transfer/Income)
     const catMap = new Map<string, number>();
     recentExpenses.forEach((t) => {
-      if (t.category === "Transfer" || t.category === "Income") return;
-      catMap.set(t.category, (catMap.get(t.category) ?? 0) + Math.abs(t.amount));
+      if (!t.categoryId || t.categoryId === "transfer" || t.categoryId === "income") return;
+      const name = catName(t.categoryId);
+      catMap.set(name, (catMap.get(name) ?? 0) + Math.abs(t.amount));
     });
     const totalCategorySpend = Array.from(catMap.values()).reduce(
       (s, v) => s + v,
@@ -265,14 +281,17 @@ export function useDashboardMetrics(filterCurrency: string | null = null) {
       totalCategorySpend,
       displayCurrency,
     };
-  }, [allAccounts, allTransactions, filterCurrency]);
+  }, [allAccounts, allTransactions, allCategories, filterCurrency]);
 }
 
 export function useReportData(timeframe: Timeframe, filterCurrency: string | null = null) {
   const allAccounts = useWalletStore((s) => s.accounts);
   const allTransactions = useWalletStore((s) => s.transactions);
+  const allCategories = useWalletStore((s) => s.categories);
 
   return useMemo(() => {
+    const catName = (id: string) => allCategories.find((c) => c.id === id)?.name ?? id;
+
     const accounts = filterCurrency
       ? allAccounts.filter((a) => a.currency === filterCurrency)
       : allAccounts;
@@ -282,7 +301,7 @@ export function useReportData(timeframe: Timeframe, filterCurrency: string | nul
       : allTransactions;
 
     // Exclude transfers — they don't affect net worth
-    const tx = allTx.filter((t) => t.category !== "Transfer");
+    const tx = allTx.filter((t) => t.categoryId !== "transfer");
 
     const now = new Date();
     const curYear = now.getFullYear();
@@ -377,8 +396,9 @@ export function useReportData(timeframe: Timeframe, filterCurrency: string | nul
 
     // Highest burn category in window
     const catMap = new Map<string, number>();
-    txWindow.filter((t) => t.amount < 0).forEach((t) => {
-      catMap.set(t.category, (catMap.get(t.category) ?? 0) + Math.abs(t.amount));
+    txWindow.filter((t) => t.amount < 0 && t.categoryId).forEach((t) => {
+      const name = catName(t.categoryId);
+      catMap.set(name, (catMap.get(name) ?? 0) + Math.abs(t.amount));
     });
     const topCat = Array.from(catMap.entries()).sort(([, a], [, b]) => b - a)[0];
     const highestBurnCategory = topCat?.[0] ?? "—";
@@ -423,5 +443,5 @@ export function useReportData(timeframe: Timeframe, filterCurrency: string | nul
       bestSavingAmount: Math.round(bestMonth.net),
       monthlyRunway,
     };
-  }, [allAccounts, allTransactions, timeframe, filterCurrency]);
+  }, [allAccounts, allTransactions, allCategories, timeframe, filterCurrency]);
 }

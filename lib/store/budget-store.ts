@@ -2,16 +2,10 @@ import { useMemo } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useWalletStore } from "./wallet-store";
-import type { Transaction } from "@/lib/data/wallet";
-
-export type BudgetCategory = Exclude<
-  Transaction["category"],
-  "Transfer" | "Income"
->;
 
 export interface Budget {
   id: string;
-  category: BudgetCategory;
+  categoryId: string;
   limit: number;
   currency: string;
 }
@@ -61,7 +55,7 @@ export function useBudgetsWithSpend() {
       const spent = transactions
         .filter(
           (t) =>
-            t.category === budget.category &&
+            t.categoryId === budget.categoryId &&
             t.amount < 0 &&
             t.date.startsWith(thisMonthStr) &&
             accountIdsForCurrency.has(t.accountId),

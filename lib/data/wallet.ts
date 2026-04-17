@@ -1,39 +1,43 @@
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  isCustom: boolean;
+}
+
 export interface Account {
   id: string;
   name: string;
   institution: string;
-  type: "checking" | "savings" | "brokerage";
+  type: "checking" | "savings" | "investment";
   currency: string;
   balance: number;
-  apy?: number;
-  dailyChange?: number;
-  monthlyChange?: number;
 }
 
 export interface Transaction {
   id: string;
-  merchant: string;
-  category:
-    | "Food & Drink"
-    | "Transport"
-    | "Shopping"
-    | "Entertainment"
-    | "Transfer"
-    | "Income";
-  subcategory: string;
-  paymentMethod: string;
+  accountId: string;
+  toAccountId?: string;
+  description: string;
+  categoryId: string;
   amount: number;
   date: string;
-  referenceCode: string;
-  location?: string;
-  accountId: string;
-  status?: "pending" | "completed";
 }
 
 export interface TransactionGroup {
   label: string;
   transactions: Transaction[];
 }
+
+export const DEFAULT_CATEGORIES: Category[] = [
+  { id: "food", name: "Food & Dining", icon: "UtensilsCrossed", color: "primary", isCustom: false },
+  { id: "transport", name: "Transport", icon: "Car", color: "blue", isCustom: false },
+  { id: "shopping", name: "Shopping", icon: "ShoppingBag", color: "purple", isCustom: false },
+  { id: "entertainment", name: "Entertainment", icon: "Tv", color: "pink", isCustom: false },
+  { id: "income", name: "Income", icon: "ArrowDownLeft", color: "green", isCustom: false },
+  { id: "transfer", name: "Transfer", icon: "ArrowLeftRight", color: "orange", isCustom: false },
+];
 
 export function formatCurrency(value: number, currency = "USD"): string {
   return new Intl.NumberFormat("en-US", {
