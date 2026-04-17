@@ -45,6 +45,8 @@ export function NetWorthChart() {
   const { timeframe } = useDashboardStore();
   const { chartData, totalNetWorth, ytdChange } = useReportData(timeframe);
 
+  const hasData = chartData.some((d) => !d.isProjected);
+
   return (
     <Card className="p-10 flex flex-col flex-1 min-h-[480px] rounded-3xl relative overflow-hidden bg-card border-border/50 shadow-card">
       {/* Header */}
@@ -65,6 +67,11 @@ export function NetWorthChart() {
 
       {/* Chart */}
       <div className="flex-1 mt-auto pt-8 relative z-10">
+        {!hasData ? (
+          <div className="w-full min-h-[280px] flex items-center justify-center">
+            <p className="text-muted-foreground text-sm font-display">No data for this period</p>
+          </div>
+        ) : (
         <ChartContainer config={chartConfig} className="w-full h-full min-h-[280px]">
           <BarChart
             data={chartData}
@@ -133,6 +140,7 @@ export function NetWorthChart() {
             </Bar>
           </BarChart>
         </ChartContainer>
+        )}
       </div>
 
       {/* Decorative glow */}
