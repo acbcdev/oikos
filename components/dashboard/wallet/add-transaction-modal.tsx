@@ -37,8 +37,14 @@ const typeOptions: { value: TransactionType; label: string }[] = [
   { value: "transfer", label: "Transfer" },
 ];
 
+const INCOME_CATEGORY_IDS = new Set(["salary", "freelance", "dividends", "rental", "other-income"]);
+
 const EXPENSE_CATEGORIES = DEFAULT_CATEGORIES.filter(
-  (c) => c.id !== "income" && c.id !== "transfer",
+  (c) => !INCOME_CATEGORY_IDS.has(c.id) && c.id !== "transfer",
+);
+
+const INCOME_CATEGORIES = DEFAULT_CATEGORIES.filter((c) =>
+  INCOME_CATEGORY_IDS.has(c.id),
 );
 
 const transactionSchema = z
@@ -138,6 +144,15 @@ export function AddTransactionModal({
   const type = form.watch("type");
   const fromAccount = form.watch("fromAccount");
 
+  useEffect(() => {
+    const currentCategoryId = form.getValues("categoryId");
+    if (type === "income" && !INCOME_CATEGORY_IDS.has(currentCategoryId)) {
+      form.setValue("categoryId", INCOME_CATEGORIES[0]?.id ?? "");
+    } else if (type === "expense" && INCOME_CATEGORY_IDS.has(currentCategoryId)) {
+      form.setValue("categoryId", EXPENSE_CATEGORIES[0]?.id ?? "");
+    }
+  }, [type]);
+
   const selectedAccount = useMemo(
     () => accounts.find((a) => a.id === fromAccount),
     [accounts, fromAccount],
@@ -165,11 +180,7 @@ export function AddTransactionModal({
       const today = new Date().toISOString().slice(0, 10);
 
       const categoryId =
-        data.type === "transfer"
-          ? "transfer"
-          : data.type === "income"
-            ? "income"
-            : data.categoryId;
+        data.type === "transfer" ? "transfer" : data.categoryId;
 
       const patch = {
         description: data.description || (data.type === "transfer" ? "Account Transfer" : "Manual Entry"),
@@ -398,36 +409,39 @@ export function AddTransactionModal({
                 />
               )}
 
-              {type === "expense" && (
+              {(type === "expense" || type === "income") && (
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="categoryId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value}
-                            onValueChange={(v) => v && field.onChange(v)}
-                          >
-                            <SelectTrigger>
-                              <span className="flex flex-1 text-left text-sm truncate">
-                                {EXPENSE_CATEGORIES.find((c) => c.id === field.value)?.name ?? "Select category"}
-                              </span>
-                            </SelectTrigger>
-                            <SelectContent>
-                              {EXPENSE_CATEGORIES.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+                      return (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value}
+                              onValueChange={(v) => v && field.onChange(v)}
+                            >
+                              <SelectTrigger>
+                                <span className="flex flex-1 text-left text-sm truncate">
+                                  {categories.find((c) => c.id === field.value)?.name ?? "Select category"}
+                                </span>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((cat) => (
+                                  <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground">Date</label>
