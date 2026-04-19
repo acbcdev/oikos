@@ -387,6 +387,7 @@ export function AddPositionModal({
                       <Input
                         {...field}
                         size="lg"
+                        autoComplete="off"
                         placeholder={
                           watchedType === "real-estate"
                             ? "Apartment Medellín"

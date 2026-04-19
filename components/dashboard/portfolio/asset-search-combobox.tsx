@@ -93,7 +93,8 @@ export function AssetSearchCombobox({ onSelect }: AssetSearchComboboxProps) {
         placeholder="Search stocks, ETFs, crypto..."
         showTrigger={false}
         showClear
-        className="w-full rounded-xl min-h-11.5 py-5 border border-transparent bg-secondary/60 focus-within:ring-2 focus-within:ring-primary/50 [&_input]:text-sm [&_input]:font-body [&_input]:placeholder:text-muted-foreground"
+        autoFocus
+        className="w-full rounded-xl min-h-11.5 border border-transparent bg-secondary/60 focus-within:ring-2 focus-within:ring-primary/50 [&_input]:text-sm [&_input]:font-body [&_input]:placeholder:text-muted-foreground"
       >
         {loading && (
           <Loader2
@@ -104,7 +105,10 @@ export function AssetSearchCombobox({ onSelect }: AssetSearchComboboxProps) {
       </ComboboxInput>
 
       {(loading || hasSearched) && (
-        <ComboboxContent className={`bg-[rgba(14,20,34,0.98)] `}>
+        <ComboboxContent
+          align="center"
+          className="bg-[rgba(14,20,34,0.98)] min-w-(--anchor-width)!"
+        >
           <ComboboxList>
             {hasSearched && results.length === 0 && (
               <p className="py-6 text-sm text-center text-muted-foreground font-body">
@@ -134,7 +138,7 @@ export function AssetSearchCombobox({ onSelect }: AssetSearchComboboxProps) {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold truncate font-display text-foreground">
+                      <span className="text-sm font-bold font-display text-foreground">
                         {asset.name}
                       </span>
                       <span
