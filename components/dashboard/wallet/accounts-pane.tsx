@@ -56,7 +56,7 @@ export function AccountsPane({ onAddAccount }: AccountsPaneProps) {
   const uniqueInstitutions = new Set(accounts.map((a) => a.type));
 
   return (
-    <section>
+    <section className="mt-4">
       <header className="mb-6">
         <p className="text-xs font-display text-muted-foreground uppercase tracking-[0.2em] font-bold">
           Liquid Assets
@@ -86,7 +86,9 @@ export function AccountsPane({ onAddAccount }: AccountsPaneProps) {
                 return (
                   <h2 className="font-display font-bold text-foreground tabular-nums leading-none">
                     <span className="text-5xl">{whole}</span>
-                    <span className="text-3xl text-muted-foreground">{decimal}</span>
+                    <span className="text-3xl text-muted-foreground">
+                      {decimal}
+                    </span>
                   </h2>
                 );
               })()
@@ -129,22 +131,33 @@ export function AccountsPane({ onAddAccount }: AccountsPaneProps) {
               key={account.id}
               className="w-[calc((100%-2*1rem)/3)] shrink-0"
             >
-              <AccountCard account={account} onDeleteRequest={handleDeleteRequest} />
+              <AccountCard
+                account={account}
+                onDeleteRequest={handleDeleteRequest}
+              />
             </div>
           ))}
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete account?</AlertDialogTitle>
-            <AlertDialogDescription>All associated data will be removed. This cannot be undone.</AlertDialogDescription>
+            <AlertDialogDescription>
+              All associated data will be removed. This cannot be undone.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleDeleteConfirm}>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
