@@ -67,7 +67,6 @@ function renderActiveShape(props: PieSectorDataItem) {
         endAngle={endAngle}
         fill={fill}
         opacity={1}
-        style={{ filter: `drop-shadow(0 0 10px ${fill})` }}
       />
     </g>
   );
@@ -140,27 +139,13 @@ export function BurnDistribution({
           <div className="relative flex flex-col items-center w-full lg:w-auto shrink-0">
             <ChartContainer config={chartConfig} className="w-70 h-70">
               <PieChart>
-                <defs>
-                  {categories.map((c) => (
-                    <filter
-                      key={c.label}
-                      id={`glow-${c.label.toLowerCase().replace(/\s/g, "-")}`}
-                    >
-                      <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                      <feMerge>
-                        <feMergeNode in="coloredBlur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                  ))}
-                </defs>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="50%"
                   innerRadius={82}
                   outerRadius={112}
-                  paddingAngle={3}
+                  paddingAngle={chartData.length > 1 ? 3 : 0}
                   dataKey="value"
                   activeIndex={activeIndex}
                   activeShape={renderActiveShape}
@@ -238,10 +223,7 @@ export function BurnDistribution({
                 >
                   <div
                     className="w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{
-                      background: cat.color,
-                      boxShadow: `0 0 6px ${cat.color}`,
-                    }}
+                    style={{ background: cat.color }}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-2">
