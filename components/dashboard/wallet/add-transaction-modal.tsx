@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus, Pencil, Calendar } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import type { Transaction } from "@/lib/data/wallet";
 import { formatCurrency, DEFAULT_CATEGORIES } from "@/lib/data/wallet";
@@ -37,7 +38,13 @@ const typeOptions: { value: TransactionType; label: string }[] = [
   { value: "transfer", label: "Transfer" },
 ];
 
-const INCOME_CATEGORY_IDS = new Set(["salary", "freelance", "dividends", "rental", "other-income"]);
+const INCOME_CATEGORY_IDS = new Set([
+  "salary",
+  "freelance",
+  "dividends",
+  "rental",
+  "other-income",
+]);
 
 const EXPENSE_CATEGORIES = DEFAULT_CATEGORIES.filter(
   (c) => !INCOME_CATEGORY_IDS.has(c.id) && c.id !== "transfer",
@@ -47,10 +54,13 @@ const INCOME_CATEGORIES = DEFAULT_CATEGORIES.filter((c) =>
   INCOME_CATEGORY_IDS.has(c.id),
 );
 
+const todayISO = () => new Date().toLocaleDateString("en-CA");
+
 const transactionSchema = z
   .object({
     type: z.enum(["expense", "income", "transfer"]),
     amount: z.string().min(1, "Amount is required"),
+    date: z.string().min(1, "Select a date"),
     fromAccount: z.string().min(1, "Select an account"),
     toAccount: z.string().optional(),
     categoryId: z.string().min(1, "Select a category"),
@@ -99,14 +109,19 @@ export function AddTransactionModal({
       ? {
           type: inferType(transaction),
           amount: Math.abs(transaction.amount).toString(),
+          date: transaction.date,
           fromAccount: transaction.accountId,
-          toAccount: transaction.toAccountId ?? accounts.find((a) => a.id !== transaction.accountId)?.id ?? "",
+          toAccount:
+            transaction.toAccountId ??
+            accounts.find((a) => a.id !== transaction.accountId)?.id ??
+            "",
           categoryId: transaction.categoryId,
           description: transaction.description,
         }
       : {
           type: "expense",
           amount: "",
+          date: todayISO(),
           fromAccount: defaultAccountId,
           toAccount: accounts.find((a) => a.id !== defaultAccountId)?.id ?? "",
           categoryId: EXPENSE_CATEGORIES[0]?.id ?? "",
@@ -120,8 +135,12 @@ export function AddTransactionModal({
       form.reset({
         type: inferType(transaction),
         amount: Math.abs(transaction.amount).toString(),
+        date: transaction.date,
         fromAccount: transaction.accountId,
-        toAccount: transaction.toAccountId ?? accounts.find((a) => a.id !== transaction.accountId)?.id ?? "",
+        toAccount:
+          transaction.toAccountId ??
+          accounts.find((a) => a.id !== transaction.accountId)?.id ??
+          "",
         categoryId: transaction.categoryId,
         description: transaction.description,
       });
@@ -133,6 +152,7 @@ export function AddTransactionModal({
       form.reset({
         type: "expense",
         amount: "",
+        date: todayISO(),
         fromAccount: id,
         toAccount: accounts.find((a) => a.id !== id)?.id ?? "",
         categoryId: EXPENSE_CATEGORIES[0]?.id ?? "",
@@ -148,7 +168,10 @@ export function AddTransactionModal({
     const currentCategoryId = form.getValues("categoryId");
     if (type === "income" && !INCOME_CATEGORY_IDS.has(currentCategoryId)) {
       form.setValue("categoryId", INCOME_CATEGORIES[0]?.id ?? "");
-    } else if (type === "expense" && INCOME_CATEGORY_IDS.has(currentCategoryId)) {
+    } else if (
+      type === "expense" &&
+      INCOME_CATEGORY_IDS.has(currentCategoryId)
+    ) {
       form.setValue("categoryId", EXPENSE_CATEGORIES[0]?.id ?? "");
     }
   }, [type]);
@@ -177,13 +200,14 @@ export function AddTransactionModal({
     try {
       const amount = parseInt(data.amount, 10);
       const signedAmount = data.type === "income" ? amount : -amount;
-      const today = new Date().toISOString().slice(0, 10);
 
       const categoryId =
         data.type === "transfer" ? "transfer" : data.categoryId;
 
       const patch = {
-        description: data.description || (data.type === "transfer" ? "Account Transfer" : "Manual Entry"),
+        description:
+          data.description ||
+          (data.type === "transfer" ? "Account Transfer" : "Manual Entry"),
         categoryId,
         amount: signedAmount,
         accountId: data.fromAccount,
@@ -191,13 +215,13 @@ export function AddTransactionModal({
       };
 
       if (transaction) {
-        updateTransaction(transaction.id, patch);
+        updateTransaction(transaction.id, { ...patch, date: data.date });
         toast.success("Transaction updated");
       } else {
         addTransaction({
           ...patch,
           id: `txn-${Date.now()}`,
-          date: today,
+          date: data.date,
         });
         toast.success("Transaction added");
       }
@@ -267,7 +291,9 @@ export function AddTransactionModal({
               name="amount"
               render={({ field }) => (
                 <FormItem className="space-y-1 text-center py-2">
-                  <FormLabel className="mx-auto">Transaction Amount</FormLabel>
+                  <FormLabel className="mx-auto">
+                    Transaction Amount *
+                  </FormLabel>
                   <FormControl>
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-4xl font-bold text-primary font-display">
@@ -309,7 +335,7 @@ export function AddTransactionModal({
                     name="fromAccount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>From Account</FormLabel>
+                        <FormLabel>From Account *</FormLabel>
                         <FormControl>
                           <Select
                             value={field.value}
@@ -318,7 +344,10 @@ export function AddTransactionModal({
                           >
                             <SelectTrigger>
                               <span className="flex flex-1 text-left text-sm truncate">
-                                {accounts.length === 0 ? "Add an account first" : (accounts.find((a) => a.id === field.value)?.name ?? "Select account")}
+                                {accounts.length === 0
+                                  ? "Add an account first"
+                                  : (accounts.find((a) => a.id === field.value)
+                                      ?.name ?? "Select account")}
                               </span>
                             </SelectTrigger>
                             <SelectContent>
@@ -327,7 +356,13 @@ export function AddTransactionModal({
                                   <SelectItem key={acc.id} value={acc.id}>
                                     <span className="flex flex-col">
                                       <span>{acc.name}</span>
-                                      <span className="text-xs text-muted-foreground capitalize">{acc.type} · {formatCurrency(acc.balance, acc.currency)}</span>
+                                      <span className="text-xs text-muted-foreground capitalize">
+                                        {acc.type} ·{" "}
+                                        {formatCurrency(
+                                          acc.balance,
+                                          acc.currency,
+                                        )}
+                                      </span>
                                     </span>
                                   </SelectItem>
                                 ))}
@@ -344,7 +379,7 @@ export function AddTransactionModal({
                     name="toAccount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>To Account</FormLabel>
+                        <FormLabel>To Account *</FormLabel>
                         <FormControl>
                           <Select
                             value={field.value ?? ""}
@@ -353,7 +388,10 @@ export function AddTransactionModal({
                           >
                             <SelectTrigger>
                               <span className="flex flex-1 text-left text-sm truncate">
-                                {accounts.length === 0 ? "Add an account first" : (accounts.find((a) => a.id === field.value)?.name ?? "Select account")}
+                                {accounts.length === 0
+                                  ? "Add an account first"
+                                  : (accounts.find((a) => a.id === field.value)
+                                      ?.name ?? "Select account")}
                               </span>
                             </SelectTrigger>
                             <SelectContent>
@@ -361,7 +399,13 @@ export function AddTransactionModal({
                                 <SelectItem key={acc.id} value={acc.id}>
                                   <span className="flex flex-col">
                                     <span>{acc.name}</span>
-                                    <span className="text-xs text-muted-foreground capitalize">{acc.type} · {formatCurrency(acc.balance, acc.currency)}</span>
+                                    <span className="text-xs text-muted-foreground capitalize">
+                                      {acc.type} ·{" "}
+                                      {formatCurrency(
+                                        acc.balance,
+                                        acc.currency,
+                                      )}
+                                    </span>
                                   </span>
                                 </SelectItem>
                               ))}
@@ -379,7 +423,7 @@ export function AddTransactionModal({
                   name="fromAccount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>From Account</FormLabel>
+                      <FormLabel>From Account *</FormLabel>
                       <FormControl>
                         <Select
                           value={field.value}
@@ -388,7 +432,10 @@ export function AddTransactionModal({
                         >
                           <SelectTrigger>
                             <span className="flex flex-1 text-left text-sm truncate">
-                              {accounts.length === 0 ? "Add an account first" : (accounts.find((a) => a.id === field.value)?.name ?? "Select account")}
+                              {accounts.length === 0
+                                ? "Add an account first"
+                                : (accounts.find((a) => a.id === field.value)
+                                    ?.name ?? "Select account")}
                             </span>
                           </SelectTrigger>
                           <SelectContent>
@@ -396,7 +443,10 @@ export function AddTransactionModal({
                               <SelectItem key={acc.id} value={acc.id}>
                                 <span className="flex flex-col">
                                   <span>{acc.name}</span>
-                                  <span className="text-xs text-muted-foreground capitalize">{acc.type} · {formatCurrency(acc.balance, acc.currency)}</span>
+                                  <span className="text-xs text-muted-foreground capitalize">
+                                    {acc.type} ·{" "}
+                                    {formatCurrency(acc.balance, acc.currency)}
+                                  </span>
                                 </span>
                               </SelectItem>
                             ))}
@@ -409,16 +459,20 @@ export function AddTransactionModal({
                 />
               )}
 
+              {/* Category + Date row — expense & income */}
               {(type === "expense" || type === "income") && (
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="categoryId"
                     render={({ field }) => {
-                      const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+                      const categories =
+                        type === "income"
+                          ? INCOME_CATEGORIES
+                          : EXPENSE_CATEGORIES;
                       return (
                         <FormItem>
-                          <FormLabel>Category</FormLabel>
+                          <FormLabel>Category *</FormLabel>
                           <FormControl>
                             <Select
                               value={field.value}
@@ -426,7 +480,8 @@ export function AddTransactionModal({
                             >
                               <SelectTrigger>
                                 <span className="flex flex-1 text-left text-sm truncate">
-                                  {categories.find((c) => c.id === field.value)?.name ?? "Select category"}
+                                  {categories.find((c) => c.id === field.value)
+                                    ?.name ?? "Select category"}
                                 </span>
                               </SelectTrigger>
                               <SelectContent>
@@ -443,32 +498,45 @@ export function AddTransactionModal({
                       );
                     }}
                   />
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Date</label>
-                    <div className="flex items-center gap-2 bg-white/5 rounded-lg py-3 px-4 text-sm font-display text-muted-foreground">
-                      <Calendar size={14} className="shrink-0" />
-                      Today
-                    </div>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date *</FormLabel>
+                        <FormControl>
+                          <DatePicker
+                            value={field.value}
+                            onChange={field.onChange}
+                            maxDate={new Date()}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               )}
 
+              {/* Date — transfer */}
               {type === "transfer" && (
-                <div className="space-y-2">
-                  <label>Date</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      readOnly
-                      value="Today"
-                      className="w-full bg-white/5 border-none rounded-lg py-3 px-4 pr-10 text-foreground focus:ring-1 focus:ring-primary text-sm font-display outline-none"
-                    />
-                    <Calendar
-                      size={14}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-                    />
-                  </div>
-                </div>
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          maxDate={new Date()}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
             </fieldset>
 
@@ -478,14 +546,14 @@ export function AddTransactionModal({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Add a short note..."
                       value={field.value ?? ""}
                       onChange={field.onChange}
-                      rows={2}
-                      className="w-full bg-white/5 border-none rounded-lg py-3 px-4 text-foreground placeholder:text-muted-foreground/40 focus:ring-1 focus:ring-primary resize-none text-sm font-body min-h-0"
+                      rows={4}
+                      className="w-full bg-secondary/60 border-none rounded-xl py-3 px-4 text-foreground placeholder:text-muted-foreground/40 focus:ring-2 focus:ring-primary/30 resize-none text-sm font-body min-h-20"
                     />
                   </FormControl>
                   <FormMessage />
