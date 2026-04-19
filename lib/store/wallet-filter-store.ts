@@ -4,6 +4,7 @@ export type TxType = "income" | "expense" | "transfer";
 export type DatePreset = "7d" | "30d" | "month" | "year";
 
 interface WalletFilterState {
+  query: string;
   selectedAccountIds: string[];
   selectedCategories: string[];
   selectedTypes: TxType[];
@@ -14,6 +15,7 @@ interface WalletFilterState {
 }
 
 interface WalletFilterActions {
+  setQuery: (q: string) => void;
   toggleAccount: (id: string) => void;
   toggleCategory: (cat: string) => void;
   toggleType: (type: TxType) => void;
@@ -23,6 +25,7 @@ interface WalletFilterActions {
 }
 
 const initialState: WalletFilterState = {
+  query: "",
   selectedAccountIds: [],
   selectedCategories: [],
   selectedTypes: [],
@@ -35,6 +38,7 @@ const initialState: WalletFilterState = {
 export const useWalletFilterStore = create<WalletFilterState & WalletFilterActions>()(
   (set) => ({
     ...initialState,
+    setQuery: (q) => set({ query: q }),
     toggleAccount: (id) =>
       set((s) => ({
         selectedAccountIds: s.selectedAccountIds.includes(id)
