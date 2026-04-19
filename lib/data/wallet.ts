@@ -35,7 +35,11 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: "transport", name: "Transport", icon: "Car", color: "blue", isCustom: false },
   { id: "shopping", name: "Shopping", icon: "ShoppingBag", color: "purple", isCustom: false },
   { id: "entertainment", name: "Entertainment", icon: "Tv", color: "pink", isCustom: false },
-  { id: "income", name: "Income", icon: "ArrowDownLeft", color: "green", isCustom: false },
+  { id: "salary", name: "Salary", icon: "Briefcase", color: "green", isCustom: false },
+  { id: "freelance", name: "Freelance", icon: "Laptop", color: "teal", isCustom: false },
+  { id: "dividends", name: "Dividends", icon: "TrendingUp", color: "emerald", isCustom: false },
+  { id: "rental", name: "Rental Income", icon: "Home", color: "cyan", isCustom: false },
+  { id: "other-income", name: "Other Income", icon: "ArrowDownLeft", color: "green", isCustom: false },
   { id: "transfer", name: "Transfer", icon: "ArrowLeftRight", color: "orange", isCustom: false },
 ];
 
