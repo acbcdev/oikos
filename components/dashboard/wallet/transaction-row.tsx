@@ -11,6 +11,8 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  Building2,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,47 +25,54 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Transaction } from "@/lib/data/wallet";
 import { formatCurrency } from "@/lib/data/wallet";
+import { useWalletStore } from "@/lib/store/wallet-store";
 import { AddTransactionModal } from "./add-transaction-modal";
 
 const categoryConfig: Record<
   string,
-  { icon: React.ElementType; bg: string; text: string; dot: string }
+  { icon: React.ElementType; bg: string; text: string; dot: string; label: string }
 > = {
   food: {
     icon: UtensilsCrossed,
     bg: "bg-primary/15",
     text: "text-primary",
     dot: "bg-primary",
+    label: "Food & Dining",
   },
   transport: {
     icon: Car,
     bg: "bg-blue-500/15",
     text: "text-blue-400",
     dot: "bg-blue-400",
+    label: "Transport",
   },
   shopping: {
     icon: ShoppingBag,
     bg: "bg-purple-500/15",
     text: "text-purple-400",
     dot: "bg-purple-400",
+    label: "Shopping",
   },
   entertainment: {
     icon: Tv,
     bg: "bg-pink-500/15",
     text: "text-pink-400",
     dot: "bg-pink-400",
+    label: "Entertainment",
   },
   transfer: {
     icon: ArrowLeftRight,
     bg: "bg-orange-500/15",
     text: "text-orange-400",
     dot: "bg-orange-400",
+    label: "Transfer",
   },
   income: {
     icon: ArrowDownLeft,
     bg: "bg-chart-2/15",
     text: "text-chart-2",
     dot: "bg-chart-2",
+    label: "Income",
   },
 };
 
@@ -79,35 +88,50 @@ export function TransactionRow({
   const config = categoryConfig[transaction.categoryId] ?? categoryConfig["food"];
   const Icon = config.icon;
   const isCredit = transaction.amount > 0;
+  const account = useWalletStore((s) =>
+    s.accounts.find((a) => a.id === transaction.accountId),
+  );
+
+  const formattedDate = new Date(transaction.date).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
   return (
     <>
-      <Card className="rounded-2xl py-0 bg-linear-to-br from-[rgba(28,37,59,0.4)] to-[rgba(19,26,42,0.6)] transition-all duration-200 ease-in-out hover:from-[rgba(37,46,68,0.5)] hover:to-[rgba(22,30,48,0.7)]">
+      <Card
+        role="button"
+        tabIndex={0}
+        className="rounded-2xl py-0 bg-linear-to-br from-[rgba(28,37,59,0.4)] to-[rgba(19,26,42,0.6)] transition-all duration-200 ease-in-out hover:from-[rgba(37,46,68,0.5)] hover:to-[rgba(22,30,48,0.7)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        onClick={() => setExpanded(!expanded)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpanded(!expanded); } }}
+        aria-expanded={expanded}
+      >
         <div className="flex items-center gap-4 px-5 py-4">
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer text-left"
-            aria-expanded={expanded}
+          <span
+            className={`size-11 rounded-xl ${config.bg} flex items-center justify-center shrink-0`}
+            aria-hidden="true"
           >
-            <span
-              className={`size-12 rounded-xl ${config.bg} flex items-center justify-center shrink-0`}
-              aria-hidden="true"
-            >
-              <Icon size={20} className={config.text} />
-            </span>
+            <Icon size={18} className={config.text} />
+          </span>
 
-            <hgroup className="flex-1 min-w-0">
-              <h4 className="text-[15px] font-display font-bold text-foreground truncate" title={transaction.description}>
-                {transaction.description}
-              </h4>
-            </hgroup>
-          </button>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-[14px] font-display font-bold text-foreground truncate leading-tight" title={transaction.description}>
+              {transaction.description || "—"}
+            </h4>
+            <span className={`inline-flex items-center gap-1.5 mt-0.5 text-[11px] font-display font-semibold tracking-wide ${config.text}`}>
+              <span className={`size-1.5 rounded-full ${config.dot}`} />
+              {config.label}
+            </span>
+          </div>
 
           <output className="text-right shrink-0">
             <p
               className={`text-[15px] font-display font-bold tabular-nums ${isCredit ? "text-positive" : "text-foreground"}`}
             >
-              {isCredit ? "+" : "-"}
+              {isCredit ? "+" : "−"}
               {formatCurrency(Math.abs(transaction.amount))}
             </p>
           </output>
@@ -119,6 +143,7 @@ export function TransactionRow({
                   variant="ghost"
                   size="icon"
                   className="shrink-0"
+                  onClick={(e) => e.stopPropagation()}
                 />
               }
             >
@@ -142,18 +167,24 @@ export function TransactionRow({
         </div>
 
         {expanded && (
-          <CardContent className="px-5 pb-5 pt-1">
-            <dl>
-              <dt className="text-[10px] font-display uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
-                Category
-              </dt>
-              <dd>
-                <span className="inline-flex items-center gap-2 text-xs font-display font-bold text-foreground bg-secondary rounded-full px-3 py-1.5">
-                  <span className={`size-2 rounded-full ${config.dot}`} />
-                  {transaction.categoryId}
+          <CardContent className="px-5 pb-4 pt-0">
+            <div className="border-t border-white/5 pt-3 flex flex-wrap gap-x-6 gap-y-2">
+              {account && (
+                <div className="flex items-center gap-2">
+                  <Building2 size={12} className="text-muted-foreground/60 shrink-0" />
+                  <span className="text-[11px] font-display font-semibold text-muted-foreground">
+                    {account.name}
+                    <span className="text-muted-foreground/50 font-normal ml-1">· {account.institution}</span>
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Clock size={12} className="text-muted-foreground/60 shrink-0" />
+                <span className="text-[11px] font-display font-semibold text-muted-foreground">
+                  {formattedDate}
                 </span>
-              </dd>
-            </dl>
+              </div>
+            </div>
           </CardContent>
         )}
       </Card>
