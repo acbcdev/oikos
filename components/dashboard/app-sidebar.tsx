@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Wallet, PieChart, TrendingUp } from "lucide-react";
+import { LayoutDashboard, Wallet, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -18,7 +18,7 @@ import {
 const navItems = [
   { icon: Wallet, label: "Wallet", href: "/" },
   { icon: LayoutDashboard, label: "Analytics", href: "/analytics" },
-  { icon: PieChart, label: "Budgets", href: "/budgets" },
+  { icon: Target, label: "Tracker", href: "/tracker" },
   { icon: TrendingUp, label: "Portfolio", href: "/portfolio" },
 ];
 

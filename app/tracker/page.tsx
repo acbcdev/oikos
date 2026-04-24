@@ -1,10 +1,10 @@
 import { SidebarInset } from "@/components/ui/sidebar";
-import { BudgetsLayout } from "@/components/dashboard/budgets/budgets-layout";
+import { TrackerLayout } from "@/components/dashboard/tracker/tracker-layout";
 
-export default function BudgetsPage() {
+export default function TrackerPage() {
   return (
     <SidebarInset className="flex-1 flex flex-col h-screen overflow-y-auto bg-background">
-      <BudgetsLayout />
+      <TrackerLayout />
     </SidebarInset>
   );
 }
