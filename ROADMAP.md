@@ -7,61 +7,73 @@
 
 ## Phase 1 — Close open loops (quick wins)
 
-Features that are partially built or broken right now.
+### 1.1 Budget edit / delete ✅ done
 
-### 1.1 Budget edit / delete
+### 1.2 Wire up "Add Transaction" on Analytics header ✅ done
 
-- Edit budget name, category, and limit inline or via modal
-- Delete budget with confirmation
-- `BudgetCard` needs an actions menu (edit / delete)
-- `budget-store.ts` needs `updateBudget` and `removeBudget` methods
-
-### 1.2 Wire up "Add Transaction" on Analytics header
-
-- The `+ Add Transaction` button on the dashboard header currently does nothing
-- Should open the same `AddTransactionModal` used in Wallet
-- Requires lifting modal state or using a shared store flag (`dashboard-store.ts`)
-
-### 1.3 Transaction filters in Wallet
-
-- Filter bar above the transactions list
-- Filter dimensions: **category**, **account**, **date range**, **type** (income / expense / transfer)
-- Filters are additive (AND logic)
-- Active filters show as dismissible chips
-- No backend needed — filter against in-memory store
+### 1.3 Transaction filters in Wallet ✅ done
 
 ---
 
-## Phase 2 — Goals system
+## Phase 2 — Tracker system
 
-> **Design decision:** Goals and Budgets are siblings, not the same thing.
-> Budgets = monthly spending ceilings per category.
-> Goals = outcome targets with a deadline (save X, reach net worth Y, cut spend Z%).
-> They share UI patterns but live in separate data models.
-> Consider merging them under a single `/plan` route with tabs.
+> **Design decision:** Drop percentage-allocation "Plan" concept entirely — too abstract.
+> The core planning feature is **Tracker**: custom monitors the user creates to watch
+> spending behavior and savings goals.
+>
+> Route: `/tracker`. Store: `lib/store/tracker-store.ts`.
+> `app/plan/` → renamed to `app/tracker/`.
+> `lib/store/plan-store.ts` → renamed to `lib/store/tracker-store.ts`.
+> `/budgets` deprecated — deleted once this phase ships.
 
-### 2.1 Goal types
+### 2.1 Tracker types
 
-| Type                | Description                             | Key fields                              |
-| ------------------- | --------------------------------------- | --------------------------------------- |
-| Savings target      | Save $X by a deadline                   | target amount, current amount, deadline |
-| Net worth milestone | Reach total net worth of $X             | target amount, calculated from accounts |
-| Spend reduction     | Cut category spend by X% vs last period | category, reduction %, baseline         |
-| FI/FIRE target      | Hit financial independence number       | FI number, monthly spend, SWR rate      |
+| Subtype | Description |
+| --- | --- |
+| `spend-monitor` | Watch a category. User sets a limit + period. Shows current spend vs limit — pass/fail. |
+| `savings-goal` | Named goal (e.g. "New desk $500"). User logs contributions manually. Mental accounting only — money stays in real bank account. Tracks progress + date of last contribution. |
 
-### 2.2 Goals CRUD
+### 2.2 Data model
 
-- `/goals` route (or merge into `/budgets` as a tab — decide during implementation)
-- Create goal modal: type selector → conditional form fields
-- Goal card: progress bar, projected completion date, status badge
-- Edit and delete actions on goal card
-- `goal-store.ts` with Zustand persist (same pattern as `budget-store.ts`)
+```ts
+type Tracker =
+  | {
+      id: string
+      type: "spend-monitor"
+      name: string
+      categoryId: string
+      currency: string
+      limit: number
+      period: "weekly" | "monthly"
+    }
+  | {
+      id: string
+      type: "savings-goal"
+      name: string
+      currency: string
+      targetAmount: number
+      currentAmount: number          // sum of manually logged contributions
+      lastContributedAt: string | null
+      contributions: Array<{ id: string; amount: number; date: string; note?: string }>
+    }
+```
 
-### 2.3 Goal ↔ Dashboard integration
+`spend-monitor` spend: derived from wallet transactions filtered by `categoryId` + `currency`
+for the active `period`. Same logic as old `useBudgetsWithSpend`.
 
-- `ActiveGoalCard` on Analytics page should pull from real goal store
-- Show the most at-risk goal (furthest from on-track), not just the first one
-- FI/FIRE goal feeds `ProjectedFICard` in report-metrics
+### 2.3 Tracker CRUD
+
+- `/tracker` route — grid of tracker cards
+- `AddTrackerModal`: type selector → conditional fields per type
+- `SpendMonitorCard`: category, period, spend vs limit, pass/fail badge, progress bar, mini spend-over-time chart
+- `SavingsGoalCard`: goal name, target, current amount, % complete, last contributed date, "+ Contribute" action, contribution history mini chart
+- Edit and delete on each card
+- `lib/store/tracker-store.ts` — Zustand persist
+
+### 2.4 Dashboard integration
+
+- `BurnRateCard` → reads `spend-monitor` trackers as limits (replaces budget-store dependency)
+- `ActiveGoalCard` → pulls most-behind `savings-goal` tracker
 
 ---
 
@@ -165,42 +177,7 @@ Features that are partially built or broken right now.
 > not cash flow. It does not feed into the net worth calculation in Analytics.
 > This keeps the data models clean: Wallet = liquidity, Portfolio = capital allocation.
 
-### 6.1 Data model
-
-> **Design decision:** Positions are owned by user-created **Portfolios**, not grouped by a
-> fixed asset type. A user can create "Crypto Portfolio", "Tech Stocks", "Dividend", or any
-> custom grouping. Asset type (`AssetType`) is still a field on each position for filtering
-> and price-fetching logic, but the primary grouping in the UI is portfolio.
-
-```ts
-type AssetType = "stock" | "etf" | "crypto" | "real-estate" | "bond";
-
-interface Portfolio {
-  id: string;
-  name: string;        // "Crypto Portfolio" / "Tech Stocks" / "Dividend"
-  description?: string;
-}
-
-interface Position {
-  id: string;
-  portfolioId: string; // belongs to a Portfolio
-  name: string;        // "Apple Inc." / "Bitcoin" / "Apartment Medellín"
-  ticker?: string;     // "AAPL", "BTC" — optional (real estate has none)
-  type: AssetType;
-  quantity: number;    // shares, tokens, units, or 1 for real estate
-  buyPrice: number;    // cost basis per unit — user-entered
-  currentPrice: number;
-  currency: string;    // "USD", "COP", etc.
-  purchaseDate: string; // ISO date
-  livePrice?: boolean; // whether this position fetches live prices
-  notes?: string;
-}
-```
-
-- `investment-store.ts` — Zustand persist, holds `portfolios[]` and `positions[]`
-- Portfolio CRUD: `addPortfolio`, `updatePortfolio`, `removePortfolio` (cascades to positions)
-- Real estate positions use `quantity: 1` and `buyPrice` = purchase value
-- P&L is always computed: `(currentPrice - buyPrice) * quantity`
+### 6.1 Data model ✅ done
 
 ### 6.2 Price input strategy
 
@@ -215,63 +192,13 @@ interface Position {
 - `lib/services/prices.ts` — `fetchStockPrice`, `fetchCryptoPrice`, `refreshPositionPrice`
 - `COINGECKO_API_KEY` must be set in `.env.local` (free Demo key from coingecko.com)
 
-### 6.3 `/portfolio` route — UI sections
+### 6.3 `/portfolio` route ✅ done
 
-> **Layout:** Same vertical 2-section pattern as `/wallet`.
-> Top = portfolios pane (like AccountsPane). Bottom = positions pane (like TransactionsPane).
-> No donut chart — allocation is communicated through the portfolio cards and grouping.
+### 6.4 Create / Edit Portfolio modal ✅ done
 
-#### Portfolios pane (mirrors AccountsPane)
+### 6.5 Add Position modal ✅ done
 
-- Header: total value across all portfolios (per currency, no conversion) + global P&L
-- "Create Portfolio" button in header (mirrors "Add Account")
-- Horizontal scroll of **portfolio cards** (mirrors account cards)
-  - Each card: portfolio name, total value, P&L absolute + %, position count, asset type badges
-  - Click a card to filter the positions pane to that portfolio
-  - Active card highlighted with neon indicator
-- Default state: "All Portfolios" — shows all positions
-
-#### Positions pane (mirrors TransactionsPane)
-
-- **Tabs:** "Current Positions" | "Previous Sales"
-  - Current: positions where `soldAt` is not set
-  - Previous Sales: positions where `soldAt` is set (closed/sold)
-- Positions grouped by portfolio (collapsible sections, each with sub-totals)
-- Filtered by selected portfolio card (or all if none selected)
-- **Unified search bar:** single input that filters by name, ticker symbol, or asset type
-- Expandable rows — same pattern as `TransactionRow`
-  - Row: asset type badge, name, ticker, current price, P&L color-coded
-  - Expanded: purchase date, quantity, cost basis, current value, unrealized gain/loss, notes
-  - Edit / delete actions inside expanded row
-  - Refresh price button inside expanded row (only when `livePrice: true`)
-  - For sold positions: shows sell date, sell price, realized gain/loss instead
-- "Add Position" button in pane header (pre-fills portfolio if one is selected)
-
-#### Empty states
-
-- No portfolios: centered CTA (same pattern as wallet empty state)
-- Portfolio selected but no positions: inline empty state inside positions pane
-
-### 6.4 Create / Edit Portfolio modal
-
-- Fields: name, description (optional)
-- On delete: confirmation dialog, cascades to all positions in that portfolio
-
-### 6.5 Add Position modal
-
-- Portfolio selector (pre-filled if opened from a specific portfolio)
-- Type selector (Stock / ETF / Crypto / Real estate / Bond)
-- Conditional fields:
-  - Stock/ETF/Crypto: ticker, quantity, buy price, date
-  - Real estate: name, address (optional), purchase value, current value, date
-  - Bond: issuer, face value, coupon rate, maturity date
-- Toggle: "Fetch live price" (only for Stock/ETF/Crypto)
-- Currency selector
-
-### 6.6 Sidebar entry
-
-- Add `{ icon: TrendingUp, label: "Portfolio", href: "/portfolio" }` to `navItems`
-- Same nav pattern as existing items
+### 6.6 Sidebar entry ✅ done
 
 ### 6.7 Notifications integration (Phase 3 extension)
 
@@ -280,6 +207,56 @@ interface Position {
 | Position up significantly   | P&L > +20% since purchase                               |
 | Position down significantly | P&L < -15% since purchase                               |
 | Stale price warning         | Current price not updated in 7+ days (manual positions) |
+
+---
+
+## Phase 7 — Theme system
+
+> Foundation phase. The current design is the default "Oikos" theme. This phase
+> introduces a base theme contract so any brand aesthetic from [getdesign.md](https://getdesign.md/)
+> (Stripe, Linear, Notion, etc.) can be dropped in as a DESIGN.md and applied
+> without touching component code.
+
+### 7.1 Base theme contract
+
+- All design tokens live in `app/globals.css` under `@theme inline {}` (already the case)
+- Extract every color, radius, shadow, font, and spacing token into a named set
+- Define the contract: a theme is a CSS file that overrides the token set — nothing else
+- Default theme file: `themes/oikos.css` (mirrors current `globals.css` tokens exactly)
+
+### 7.2 Theme loader
+
+- `lib/theme.ts` — `applyTheme(name: string)` swaps the active theme `<link>` tag or injects a `<style>` block
+- Theme preference persisted in `localStorage` (key: `oikos-theme`)
+- On mount, read preference and apply before first paint (avoid flash)
+- `useTheme()` hook exposes `{ theme, setTheme, themes }` — same pattern as `next-themes` but lighter
+
+### 7.3 Theme files (getdesign.md-driven)
+
+> Each theme is a `themes/<name>.css` that overrides the Oikos token set.
+> Token values are derived from the brand's DESIGN.md from getdesign.md.
+
+| Theme slug | Brand inspiration | Notes |
+| ---------- | ----------------- | ----- |
+| `oikos` | Default | Current dark palette — ships as baseline |
+| `linear` | Linear.app | High-contrast dark, sharp radius, mono accents |
+| `stripe` | Stripe | Purple gradient accent, weight-300 elegance |
+| `notion` | Notion | Neutral off-white, minimal chrome, serif hints |
+
+> Add more by dropping a DESIGN.md into context and generating a new `.css` override file.
+
+### 7.4 Theme picker UI
+
+- Settings panel or popover (header icon) with theme swatches
+- Each swatch shows the primary background + accent color of the theme
+- Active theme highlighted
+- Picker is the only UI surface — no per-component theme logic anywhere
+
+### 7.5 Constraints
+
+- Themes override tokens only — zero conditional logic in components
+- Dark-only for now (light mode deferred — see below)
+- No runtime CSS-in-JS — static `.css` files only
 
 ---
 
