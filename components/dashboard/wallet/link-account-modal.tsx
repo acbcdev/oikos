@@ -3,7 +3,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Wallet } from "lucide-react";
+import { CreditCard, PiggyBank, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,26 @@ import {
 import { useWalletStore } from "@/lib/store/wallet-store";
 import type { Account } from "@/lib/data/wallet";
 
-const accountTypes = ["Checking", "Savings", "Brokerage"] as const;
+const ACCOUNT_TYPES = [
+  {
+    label: "Checking",
+    value: "checking" as const,
+    icon: CreditCard,
+    description: "Day-to-day spending",
+  },
+  {
+    label: "Savings",
+    value: "savings" as const,
+    icon: PiggyBank,
+    description: "Long-term savings",
+  },
+  {
+    label: "Investment",
+    value: "investment" as const,
+    icon: TrendingUp,
+    description: "Stocks & funds",
+  },
+];
 
 const currencies = [
   { code: "USD", label: "USD - US Dollar" },
@@ -41,7 +61,7 @@ const accountSchema = z.object({
     .string()
     .min(2, "Name must be at least 2 characters")
     .max(50, "Name too long"),
-  accountType: z.enum(["Checking", "Savings", "Brokerage"]),
+  accountType: z.enum(["checking", "savings", "investment"]),
   currency: z.string().min(1, "Select a currency"),
   balance: z.string().optional(),
 });
@@ -61,27 +81,30 @@ export function LinkAccountModal({
     resolver: zodResolver(accountSchema),
     defaultValues: {
       name: "",
-      accountType: accountTypes[0],
+      accountType: "checking",
       currency: "USD",
       balance: "",
     },
   });
 
   const currency = form.watch("currency");
+  const selectedType = form.watch("accountType");
 
   const currencySymbol =
     new Intl.NumberFormat("en-US", { style: "currency", currency })
       .formatToParts(0)
       .find((p) => p.type === "currency")?.value ?? "$";
 
+  const ActiveIcon = ACCOUNT_TYPES.find((t) => t.value === selectedType)?.icon ?? CreditCard;
+
   const onSubmit = (data: AccountFormValues) => {
     const acc: Account = {
       id: `acc-${Date.now()}`,
       name: data.name.trim(),
       institution: data.name.trim(),
-      type: data.accountType.toLowerCase() as Account["type"],
+      type: data.accountType,
       currency: data.currency,
-      balance: data.balance ? parseInt(data.balance, 10) : 0,
+      balance: data.balance ? parseFloat(data.balance) : 0,
     };
 
     addAccount(acc);
@@ -97,7 +120,7 @@ export function LinkAccountModal({
       >
         <header className="px-8 pt-8 pb-6 flex items-center gap-3">
           <span className="size-8 rounded-lg bg-primary flex items-center justify-center">
-            <Wallet size={16} className="text-primary-foreground" />
+            <ActiveIcon size={16} className="text-primary-foreground" />
           </span>
           <DialogTitle className="text-xl font-bold text-foreground font-display tracking-tight">
             Link New Account
@@ -118,11 +141,12 @@ export function LinkAccountModal({
                   <FormControl>
                     <Input
                       type="text"
-                      size={"lg"}
+                      size="lg"
                       placeholder="e.g. Main Checking"
                       autoFocus
+                      autoComplete="off"
                       {...field}
-                      className="w-full border-none rounded-lg py-3 px-4"
+                      className="w-full"
                     />
                   </FormControl>
                   <FormMessage />
@@ -137,79 +161,94 @@ export function LinkAccountModal({
                 <FormItem>
                   <FormLabel>Account Type</FormLabel>
                   <FormControl>
-                    <Select
-                      value={field.value}
-                      onValueChange={(v) => v && field.onChange(v)}
-                    >
-                      <SelectTrigger size="lg">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {accountTypes.map((t) => (
-                          <SelectItem key={t} value={t}>
-                            {t}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="grid grid-cols-3 gap-2">
+                      {ACCOUNT_TYPES.map(({ label, value, icon: Icon, description }) => {
+                        const isSelected = field.value === value;
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => field.onChange(value)}
+                            className={cn(
+                              "flex flex-col items-start gap-2 rounded-xl border p-3.5 text-left transition-all",
+                              isSelected
+                                ? "border-primary bg-primary/10 text-foreground"
+                                : "border-border bg-secondary/40 text-muted-foreground hover:border-border/60 hover:bg-secondary/60 hover:text-foreground",
+                            )}
+                          >
+                            <Icon
+                              size={16}
+                              className={isSelected ? "text-primary" : "text-muted-foreground"}
+                            />
+                            <div>
+                              <p className="text-xs font-semibold font-display">{label}</p>
+                              <p className="text-[10px] opacity-60 leading-tight">{description}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Currency</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.value}
-                      onValueChange={(v) => v && field.onChange(v)}
-                    >
-                      <SelectTrigger size="lg">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {currencies.map((c) => (
-                          <SelectItem key={c.code} value={c.code}>
-                            {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Currency</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={(v) => v && field.onChange(v)}
+                      >
+                        <SelectTrigger size="lg">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {currencies.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="balance"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Initial Balance</FormLabel>
-                  <FormControl>
-                    <NumberInput
-                      size="lg"
-                      prefix={currencySymbol}
-                      placeholder="0.00"
-                      value={field.value ?? ""}
-                      onValueChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="balance"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Initial Balance</FormLabel>
+                    <FormControl>
+                      <NumberInput
+                        size="lg"
+                        prefix={currencySymbol}
+                        placeholder="0.00"
+                        value={field.value ?? ""}
+                        onValueChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <footer className="flex gap-3 pt-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
+                size="xl"
                 onClick={() => onOpenChange(false)}
                 className="flex-1 font-display font-bold tracking-wider uppercase"
               >
@@ -217,6 +256,7 @@ export function LinkAccountModal({
               </Button>
               <Button
                 type="submit"
+                size="xl"
                 className="flex-1 font-display font-bold tracking-wider uppercase"
               >
                 Save Account

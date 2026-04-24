@@ -564,6 +564,7 @@ export function AddTransactionModal({
             {/* CTA */}
             <Button
               type="submit"
+              size={"xl"}
               disabled={form.formState.isSubmitting}
               className="w-full font-display font-bold tracking-wider uppercase mt-2"
             >
