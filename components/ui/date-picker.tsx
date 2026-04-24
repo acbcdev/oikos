@@ -5,15 +5,28 @@ import { CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import type { DayPicker } from "react-day-picker";
 
 interface DatePickerProps {
+  // value
   value?: string; // ISO date YYYY-MM-DD
   onChange: (value: string) => void;
+  // trigger
   placeholder?: string;
   disabled?: boolean;
-  maxDate?: Date;
-  minDate?: Date;
   className?: string;
+  // bounds
+  maxDate?: Date | null; // null = no upper bound; undefined = today (default)
+  minDate?: Date;
+  // popover positioning
+  side?: "top" | "bottom" | "left" | "right";
+  align?: "start" | "center" | "end";
+  sideOffset?: number;
+  alignOffset?: number;
+  // calendar
+  captionLayout?: React.ComponentProps<typeof DayPicker>["captionLayout"];
+  showOutsideDays?: boolean;
+  numberOfMonths?: number;
 }
 
 export function DatePicker({
@@ -21,10 +34,18 @@ export function DatePicker({
   onChange,
   placeholder = "Pick a date",
   disabled,
-  maxDate = new Date(),
-  minDate,
   className,
+  maxDate,
+  minDate,
+  side = "bottom",
+  align = "start",
+  sideOffset,
+  alignOffset,
+  captionLayout,
+  showOutsideDays,
+  numberOfMonths,
 }: DatePickerProps) {
+  const effectiveMaxDate = maxDate === undefined ? new Date() : maxDate ?? null;
   const [open, setOpen] = React.useState(false);
 
   const selected = value ? new Date(value + "T00:00:00") : undefined;
@@ -63,13 +84,22 @@ export function DatePicker({
           {formatted ?? placeholder}
         </span>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-card border-white/10" align="start">
+      <PopoverContent
+        className="w-auto p-0 bg-card border-white/10"
+        side={side}
+        align={align}
+        sideOffset={sideOffset}
+        alignOffset={alignOffset}
+      >
         <Calendar
           mode="single"
           selected={selected}
           onSelect={handleSelect}
+          captionLayout={captionLayout}
+          showOutsideDays={showOutsideDays}
+          numberOfMonths={numberOfMonths}
           disabled={(date) => {
-            if (maxDate && date > maxDate) return true;
+            if (effectiveMaxDate && date > effectiveMaxDate) return true;
             if (minDate && date < minDate) return true;
             return false;
           }}
