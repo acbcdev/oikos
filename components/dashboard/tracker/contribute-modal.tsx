@@ -80,6 +80,7 @@ export function ContributeModal({ open, onOpenChange, goal }: ContributeModalPro
                       size="lg"
                       placeholder="0.00"
                       autoFocus
+                      onValueChange={field.onChange}
                       {...field}
                     />
                   </FormControl>
