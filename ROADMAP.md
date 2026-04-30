@@ -26,54 +26,17 @@
 > `lib/store/plan-store.ts` → renamed to `lib/store/tracker-store.ts`.
 > `/budgets` deprecated — deleted once this phase ships.
 
-### 2.1 Tracker types
+### 2.1 Tracker types ✅ done
 
-| Subtype | Description |
-| --- | --- |
-| `spend-monitor` | Watch a category. User sets a limit + period. Shows current spend vs limit — pass/fail. |
-| `savings-goal` | Named goal (e.g. "New desk $500"). User logs contributions manually. Mental accounting only — money stays in real bank account. Tracks progress + date of last contribution. |
-
-### 2.2 Data model
-
-```ts
-type Tracker =
-  | {
-      id: string
-      type: "spend-monitor"
-      name: string
-      categoryId: string
-      currency: string
-      limit: number
-      period: "weekly" | "monthly"
-    }
-  | {
-      id: string
-      type: "savings-goal"
-      name: string
-      currency: string
-      targetAmount: number
-      currentAmount: number          // sum of manually logged contributions
-      lastContributedAt: string | null
-      contributions: Array<{ id: string; amount: number; date: string; note?: string }>
-    }
-```
-
-`spend-monitor` spend: derived from wallet transactions filtered by `categoryId` + `currency`
-for the active `period`. Same logic as old `useBudgetsWithSpend`.
+### 2.2 Data model ✅ done
 
 ### 2.3 Tracker CRUD
 
-- `/tracker` route — grid of tracker cards
-- `AddTrackerModal`: type selector → conditional fields per type
-- `SpendMonitorCard`: category, period, spend vs limit, pass/fail badge, progress bar, mini spend-over-time chart
-- `SavingsGoalCard`: goal name, target, current amount, % complete, last contributed date, "+ Contribute" action, contribution history mini chart
-- Edit and delete on each card
-- `lib/store/tracker-store.ts` — Zustand persist
+- ✅ `/tracker` route, `AddTrackerModal`, `SpendMonitorCard`, `SavingsGoalCard`, edit/delete, `tracker-store.ts`
+- ❌ Mini spend-over-time chart (`SpendMonitorCard`)
+- ❌ Contribution history mini chart (`SavingsGoalCard`)
 
-### 2.4 Dashboard integration
-
-- `BurnRateCard` → reads `spend-monitor` trackers as limits (replaces budget-store dependency)
-- `ActiveGoalCard` → pulls most-behind `savings-goal` tracker
+### 2.4 Dashboard integration ✅ done
 
 ---
 
