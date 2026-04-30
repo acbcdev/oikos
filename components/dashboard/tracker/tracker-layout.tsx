@@ -11,9 +11,8 @@ import { SpendMonitorCard } from "./spend-monitor-card";
 import { SavingsGoalCard } from "./savings-goal-card";
 import { AddTrackerModal } from "./add-tracker-modal";
 import { ContributeModal } from "./contribute-modal";
-import type { SavingsGoal } from "@/lib/store/tracker-store";
+import type { SavingsGoal, Tracker } from "@/lib/store/tracker-store";
 
-type FilterType = "all" | "spend-monitor" | "savings-goal";
 type ViewMode = "grid" | "list";
 
 function CycleBar() {
@@ -196,8 +195,8 @@ function SummaryCards({
 export function TrackerLayout() {
   const [hydrated, setHydrated] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<Tracker | null>(null);
   const [contributeGoal, setContributeGoal] = useState<SavingsGoal | null>(null);
-  const [filter, setFilter] = useState<FilterType>("all");
   const [view, setView] = useState<ViewMode>("grid");
   const [search, setSearch] = useState("");
 
@@ -211,20 +210,9 @@ export function TrackerLayout() {
   const goals = useSavingsGoals();
   const removeTracker = useTrackerStore((s) => s.removeTracker);
 
-  const allCount = monitors.length + goals.length;
-  const monitorsCount = monitors.length;
-  const goalsCount = goals.length;
-
   const q = search.toLowerCase();
-  const filteredMonitors = monitors.filter(
-    (m) => filter !== "savings-goal" && m.name.toLowerCase().includes(q),
-  );
-  const filteredGoals = goals.filter(
-    (g) => filter !== "spend-monitor" && g.name.toLowerCase().includes(q),
-  );
-
-  const showMonitors = filter !== "savings-goal";
-  const showGoals = filter !== "spend-monitor";
+  const filteredMonitors = monitors.filter((m) => m.name.toLowerCase().includes(q));
+  const filteredGoals = goals.filter((g) => g.name.toLowerCase().includes(q));
 
   if (!hydrated) {
     return (
@@ -260,74 +248,58 @@ export function TrackerLayout() {
       {/* summary cards */}
       <SummaryCards monitors={monitors} goals={goals} />
 
-      {/* filter + search bar */}
+      {/* search + view bar */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-1 rounded-xl border border-border/40 bg-card p-1">
-          {(
-            [
-              { value: "all", label: "All Trackers", count: allCount },
-              { value: "spend-monitor", label: "Limits", count: monitorsCount },
-              { value: "savings-goal", label: "Targets", count: goalsCount },
-            ] as const
-          ).map(({ value, label, count }) => (
-            <button
-              key={value}
-              onClick={() => setFilter(value)}
-              className={cn(
-                "flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all font-display uppercase tracking-wider",
-                filter === value
-                  ? "bg-secondary text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {label}
-              <span
-                className={cn(
-                  "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold",
-                  filter === value ? "bg-primary text-primary-foreground" : "bg-secondary/80",
-                )}
-              >
-                {count}
-              </span>
-            </button>
-          ))}
+        {/* left: search */}
+        <div className="group relative flex items-center flex-1 max-w-lg">
+          <Search
+            size={15}
+            className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground/50 transition-colors duration-150 group-focus-within:text-muted-foreground"
+          />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search trackers..."
+            className="h-12 w-full rounded-full border-border/30 bg-card/60 pl-12 pr-12 text-base placeholder:text-muted-foreground/35 transition-all duration-200 focus-visible:border-border/60 focus-visible:bg-card"
+          />
+          {!search && (
+            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 rounded border border-border/25 bg-secondary/40 px-1.5 py-px text-[9px] font-mono text-muted-foreground/35 transition-opacity duration-150 group-focus-within:opacity-0">
+              /
+            </span>
+          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search trackers..."
-              className="h-8 w-48 rounded-lg pl-8 text-xs"
-            />
-          </div>
-          <div className="flex rounded-lg border border-border/40 p-0.5">
-            <button
-              onClick={() => setView("grid")}
-              className={cn(
-                "flex size-7 items-center justify-center rounded-md transition-all",
-                view === "grid" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <LayoutGrid size={13} />
-            </button>
-            <button
-              onClick={() => setView("list")}
-              className={cn(
-                "flex size-7 items-center justify-center rounded-md transition-all",
-                view === "list" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <List size={13} />
-            </button>
-          </div>
+        {/* right: view toggle */}
+        <div className="relative flex items-center rounded-full border border-border/30 bg-card/60 p-0.5">
+          <div
+            className={cn(
+              "absolute left-0.5 top-0.5 bottom-0.5 w-7 rounded-full bg-secondary transition-transform duration-200 ease-out",
+              view === "list" && "translate-x-7",
+            )}
+          />
+          <button
+            onClick={() => setView("grid")}
+            className={cn(
+              "relative z-10 flex size-7 items-center justify-center rounded-full transition-colors duration-150",
+              view === "grid" ? "text-foreground" : "text-muted-foreground/40 hover:text-muted-foreground",
+            )}
+          >
+            <LayoutGrid size={12} />
+          </button>
+          <button
+            onClick={() => setView("list")}
+            className={cn(
+              "relative z-10 flex size-7 items-center justify-center rounded-full transition-colors duration-150",
+              view === "list" ? "text-foreground" : "text-muted-foreground/40 hover:text-muted-foreground",
+            )}
+          >
+            <List size={12} />
+          </button>
         </div>
       </div>
 
       {/* limits section */}
-      {showMonitors && filteredMonitors.length > 0 && (
+      {filteredMonitors.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-widest text-foreground font-display">
@@ -348,6 +320,7 @@ export function TrackerLayout() {
               <SpendMonitorCard
                 key={m.id}
                 monitor={m}
+                onEdit={() => setEditTarget(m)}
                 onDelete={() => removeTracker(m.id)}
               />
             ))}
@@ -356,7 +329,7 @@ export function TrackerLayout() {
       )}
 
       {/* targets section */}
-      {showGoals && filteredGoals.length > 0 && (
+      {filteredGoals.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-widest text-foreground font-display">
@@ -377,6 +350,7 @@ export function TrackerLayout() {
               <SavingsGoalCard
                 key={g.id}
                 goal={g}
+                onEdit={() => setEditTarget(g)}
                 onDelete={() => removeTracker(g.id)}
                 onContribute={() => setContributeGoal(g)}
               />
@@ -407,6 +381,11 @@ export function TrackerLayout() {
       )}
 
       <AddTrackerModal open={addOpen} onOpenChange={setAddOpen} />
+      <AddTrackerModal
+        open={!!editTarget}
+        onOpenChange={(v) => { if (!v) setEditTarget(null); }}
+        tracker={editTarget ?? undefined}
+      />
       <ContributeModal
         open={!!contributeGoal}
         onOpenChange={(v) => { if (!v) setContributeGoal(null); }}

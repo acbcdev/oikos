@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -64,11 +64,29 @@ type TrackerType = "spend-monitor" | "savings-goal";
 interface AddTrackerModalProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  tracker?: Tracker;
 }
 
-export function AddTrackerModal({ open, onOpenChange }: AddTrackerModalProps) {
+export function AddTrackerModal({ open, onOpenChange, tracker }: AddTrackerModalProps) {
+  const isEdit = !!tracker;
   const [type, setType] = useState<TrackerType>("spend-monitor");
+
+  const labels = isEdit
+    ? {
+        title: type === "spend-monitor" ? "Edit Limit" : "Edit Target",
+        subtitle: tracker?.name ?? "",
+        submitMonitor: "Save Changes",
+        submitGoal: "Save Changes",
+      }
+    : {
+        title: "New Tracker",
+        subtitle: "Monitor spending or save toward a goal.",
+        submitMonitor: "Create Limit",
+        submitGoal: "Create Goal",
+      };
+
   const addTracker = useTrackerStore((s) => s.addTracker);
+  const updateTracker = useTrackerStore((s) => s.updateTracker);
   const categories = useWalletStore((s) => s.categories);
 
   const expenseCategories = categories.filter((c) => EXPENSE_CATEGORY_IDS.includes(c.id));
@@ -83,6 +101,33 @@ export function AddTrackerModal({ open, onOpenChange }: AddTrackerModalProps) {
     defaultValues: { name: "", currency: "USD", targetAmount: "", deadline: defaultDeadline() },
   });
 
+  useEffect(() => {
+    if (!open) return;
+    if (tracker) {
+      setType(tracker.type);
+      if (tracker.type === "spend-monitor") {
+        monitorForm.reset({
+          name: tracker.name,
+          categoryId: tracker.categoryId,
+          currency: tracker.currency,
+          limit: String(tracker.limit),
+          period: tracker.period,
+        });
+      } else {
+        goalForm.reset({
+          name: tracker.name,
+          currency: tracker.currency,
+          targetAmount: String(tracker.targetAmount),
+          deadline: tracker.deadline ?? defaultDeadline(),
+        });
+      }
+    } else {
+      setType("spend-monitor");
+      monitorForm.reset({ name: "", categoryId: "", currency: "USD", limit: "", period: "monthly" });
+      goalForm.reset({ name: "", currency: "USD", targetAmount: "", deadline: defaultDeadline() });
+    }
+  }, [open, tracker]);
+
   const handleClose = () => {
     onOpenChange(false);
     monitorForm.reset();
@@ -90,32 +135,51 @@ export function AddTrackerModal({ open, onOpenChange }: AddTrackerModalProps) {
   };
 
   const onSubmitMonitor = (data: MonitorForm) => {
-    const tracker: Tracker = {
-      id: `tm-${Date.now()}`,
-      type: "spend-monitor",
-      name: data.name.trim(),
-      categoryId: data.categoryId,
-      currency: data.currency,
-      limit: parseFloat(data.limit),
-      period: data.period,
-    };
-    addTracker(tracker);
+    if (isEdit && tracker) {
+      updateTracker(tracker.id, {
+        name: data.name.trim(),
+        categoryId: data.categoryId,
+        currency: data.currency,
+        limit: parseFloat(data.limit),
+        period: data.period,
+      });
+    } else {
+      const t: Tracker = {
+        id: `tm-${Date.now()}`,
+        type: "spend-monitor",
+        name: data.name.trim(),
+        categoryId: data.categoryId,
+        currency: data.currency,
+        limit: parseFloat(data.limit),
+        period: data.period,
+      };
+      addTracker(t);
+    }
     handleClose();
   };
 
   const onSubmitGoal = (data: GoalForm) => {
-    const tracker: Tracker = {
-      id: `sg-${Date.now()}`,
-      type: "savings-goal",
-      name: data.name.trim(),
-      currency: data.currency,
-      targetAmount: parseFloat(data.targetAmount),
-      currentAmount: 0,
-      deadline: data.deadline || undefined,
-      lastContributedAt: null,
-      contributions: [],
-    };
-    addTracker(tracker);
+    if (isEdit && tracker) {
+      updateTracker(tracker.id, {
+        name: data.name.trim(),
+        currency: data.currency,
+        targetAmount: parseFloat(data.targetAmount),
+        deadline: data.deadline || undefined,
+      });
+    } else {
+      const t: Tracker = {
+        id: `sg-${Date.now()}`,
+        type: "savings-goal",
+        name: data.name.trim(),
+        currency: data.currency,
+        targetAmount: parseFloat(data.targetAmount),
+        currentAmount: 0,
+        deadline: data.deadline || undefined,
+        lastContributedAt: null,
+        contributions: [],
+      };
+      addTracker(t);
+    }
     handleClose();
   };
 
@@ -124,43 +188,43 @@ export function AddTrackerModal({ open, onOpenChange }: AddTrackerModalProps) {
       <DialogContent showCloseButton className="sm:max-w-lg bg-card border-white/5 p-0 gap-0">
         <header className="px-8 pt-8 pb-6">
           <DialogTitle className="text-xl font-bold text-foreground font-display tracking-tight">
-            New Tracker
+            {labels.title}
           </DialogTitle>
-          <p className="text-xs text-muted-foreground mt-1">
-            Monitor spending or save toward a goal.
-          </p>
+          <p className="text-xs text-muted-foreground mt-1">{labels.subtitle}</p>
         </header>
 
-        {/* type selector */}
-        <div className="px-8 pb-5">
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { value: "spend-monitor" as TrackerType, icon: TrendingDown, label: "Limit", desc: "Cap category spend" },
-              { value: "savings-goal" as TrackerType, icon: PiggyBank, label: "Target", desc: "Save toward a goal" },
-            ].map(({ value, icon: Icon, label, desc }) => {
-              const selected = type === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setType(value)}
-                  className={cn(
-                    "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all",
-                    selected
-                      ? "border-primary/60 bg-primary/8 text-foreground"
-                      : "border-border/50 bg-secondary/30 text-muted-foreground hover:border-border hover:bg-secondary/60 hover:text-foreground",
-                  )}
-                >
-                  <Icon size={15} className={selected ? "text-primary" : ""} />
-                  <div>
-                    <p className="text-xs font-bold font-display uppercase tracking-wider">{label}</p>
-                    <p className="text-[10px] opacity-60">{desc}</p>
-                  </div>
-                </button>
-              );
-            })}
+        {/* type selector — hidden in edit mode (type is fixed) */}
+        {!isEdit && (
+          <div className="px-8 pb-5">
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: "spend-monitor" as TrackerType, icon: TrendingDown, label: "Limit", desc: "Cap category spend" },
+                { value: "savings-goal" as TrackerType, icon: PiggyBank, label: "Target", desc: "Save toward a goal" },
+              ].map(({ value, icon: Icon, label, desc }) => {
+                const selected = type === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setType(value)}
+                    className={cn(
+                      "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all",
+                      selected
+                        ? "border-primary/60 bg-primary/8 text-foreground"
+                        : "border-border/50 bg-secondary/30 text-muted-foreground hover:border-border hover:bg-secondary/60 hover:text-foreground",
+                    )}
+                  >
+                    <Icon size={15} className={selected ? "text-primary" : ""} />
+                    <div>
+                      <p className="text-xs font-bold font-display uppercase tracking-wider">{label}</p>
+                      <p className="text-[10px] opacity-60">{desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* monitor form */}
         {type === "spend-monitor" && (
@@ -277,7 +341,7 @@ export function AddTrackerModal({ open, onOpenChange }: AddTrackerModalProps) {
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">
-                  Create Limit
+                  {labels.submitMonitor}
                 </Button>
               </div>
             </form>
@@ -368,7 +432,7 @@ export function AddTrackerModal({ open, onOpenChange }: AddTrackerModalProps) {
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">
-                  Create Goal
+                  {labels.submitGoal}
                 </Button>
               </div>
             </form>

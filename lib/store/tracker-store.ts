@@ -37,7 +37,7 @@ export type Tracker = SpendMonitor | SavingsGoal;
 interface TrackerState {
   trackers: Tracker[];
   addTracker: (t: Tracker) => void;
-  updateTracker: (id: string, patch: Partial<Omit<Tracker, "id" | "type">>) => void;
+  updateTracker: (id: string, patch: Partial<Omit<SpendMonitor, "id" | "type">> | Partial<Omit<SavingsGoal, "id" | "type">>) => void;
   removeTracker: (id: string) => void;
   addContribution: (goalId: string, contribution: Contribution) => void;
 }
