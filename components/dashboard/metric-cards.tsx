@@ -28,6 +28,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { useWalletStore, useDashboardMetrics } from "@/lib/store/wallet-store";
+import { useTrackerStore, useSpendMonitorsWithSpend, useSavingsGoals } from "@/lib/store/tracker-store";
 import { formatCurrency, formatCurrencySplit } from "@/lib/data/wallet";
 
 const netWorthChartConfig = {
@@ -122,7 +123,32 @@ export function NetWorthCard({ currency = null }: { currency?: string | null }) 
 // ─── Active Goal ───────────────────────────────────────────────────────────────
 
 export function ActiveGoalCard() {
-  const percent = 85;
+  useEffect(() => {
+    useTrackerStore.persist.rehydrate();
+  }, []);
+
+  const goals = useSavingsGoals();
+
+  const goal = goals.reduce<typeof goals[number] | null>((worst, g) => {
+    const pct = g.targetAmount > 0 ? g.currentAmount / g.targetAmount : 1;
+    if (!worst) return g;
+    const worstPct = worst.targetAmount > 0 ? worst.currentAmount / worst.targetAmount : 1;
+    return pct < worstPct ? g : worst;
+  }, null);
+
+  if (!goal) {
+    return (
+      <Card className="rounded-2xl py-0 h-56 relative overflow-hidden group glass-card">
+        <CardContent className="flex items-center justify-center h-full">
+          <p className="text-muted-foreground text-sm">No savings goals yet</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const percent = Math.round(goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0);
+  const remaining = goal.targetAmount - goal.currentAmount;
+
   return (
     <Card className="rounded-2xl py-0 h-56 relative overflow-hidden group glass-card">
       <CardHeader className="p-6 pb-0 relative z-10">
@@ -134,18 +160,18 @@ export function ActiveGoalCard() {
             <span className="block text-muted-foreground font-display text-[9px] font-bold uppercase tracking-[0.18em] leading-none mb-1">
               Active Goal
             </span>
-            <h3 className="text-foreground font-display text-lg font-bold leading-none">
-              Vacation Fund
+            <h3 className="text-foreground font-display text-lg font-bold leading-none truncate max-w-[140px]">
+              {goal.name}
             </h3>
           </div>
         </div>
         <CardAction>
           <div className="text-right">
             <div className="text-foreground font-display text-2xl font-bold tracking-tight">
-              $8.5k
+              {formatCurrency(goal.currentAmount, goal.currency)}
             </div>
             <div className="text-muted-foreground font-display text-[9px] font-bold uppercase tracking-tight">
-              of $10k target
+              of {formatCurrency(goal.targetAmount, goal.currency)}
             </div>
           </div>
         </CardAction>
@@ -156,20 +182,19 @@ export function ActiveGoalCard() {
           <div className="flex items-center gap-1.5">
             <CalendarDays size={12} className="text-primary" />
             <span className="text-muted-foreground font-body text-[10px] uppercase tracking-wide">
-              Oct 12, 2024
+              {goal.deadline
+                ? new Date(goal.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                : "No deadline"}
             </span>
           </div>
-          <span className="text-primary font-display font-bold text-base">
-            {percent}%
-          </span>
+          <span className="text-primary font-display font-bold text-base">{percent}%</span>
         </div>
         <div className="h-2 w-full rounded-full overflow-hidden bg-white/5">
           <div
             className="h-full rounded-full relative transition-all duration-1000 ease-out"
             style={{
-              width: `${percent}%`,
-              background:
-                "linear-gradient(90deg, var(--color-primary) 0%, #e8ff4d 100%)",
+              width: `${Math.min(percent, 100)}%`,
+              background: "linear-gradient(90deg, var(--color-primary) 0%, #e8ff4d 100%)",
               boxShadow: "0 0 12px rgba(212,255,0,0.4)",
             }}
           />
@@ -178,12 +203,12 @@ export function ActiveGoalCard() {
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border bg-primary/5 border-primary/15">
             <PiggyBank size={12} className="text-primary" />
             <span className="text-primary font-display text-[9px] font-bold uppercase tracking-widest">
-              $450/mo
+              {formatCurrency(remaining, goal.currency)} left
             </span>
           </div>
           <div className="flex items-center gap-1 text-positive font-display text-[9px] font-bold uppercase tracking-widest">
             <CircleCheck size={12} />
-            On Track
+            {percent >= 100 ? "Complete" : "In Progress"}
           </div>
         </div>
       </CardFooter>
@@ -200,8 +225,11 @@ export function ActiveGoalCard() {
 export function BurnRateCard({ currency = null }: { currency?: string | null }) {
   const { burnTotal, todayBurn, burnSparkline, displayCurrency } =
     useDashboardMetrics(currency);
+  const monitors = useSpendMonitorsWithSpend();
   const { whole, decimal } = formatCurrencySplit(burnTotal, displayCurrency);
-  const isHighRate = burnTotal > 1000;
+
+  const totalLimit = monitors.reduce((s, m) => s + m.limit, 0);
+  const isHighRate = totalLimit > 0 ? burnTotal > totalLimit : burnTotal > 1000;
 
   return (
     <Card className="rounded-2xl py-0 h-56 relative overflow-hidden group glass-card">
