@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
   Search,
   Plus,
@@ -9,6 +10,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
 import {
   useInvestmentStore,
@@ -125,6 +127,8 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
 
+  useHotkeys("n", () => setModalOpen(true), { preventDefault: true });
+
   const portfolios = useInvestmentStore((s) => s.portfolios);
   const allPositions = useInvestmentStore((s) => s.positions);
 
@@ -215,6 +219,7 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
         <Button onClick={() => setModalOpen(true)} size="xl">
           <Plus size={16} />
           Add Position
+          <Kbd>N</Kbd>
         </Button>
       </div>
 

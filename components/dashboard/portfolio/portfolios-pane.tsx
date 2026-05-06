@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useInvestmentStore, usePortfolioMetrics } from "@/lib/store/investment-store";
 import { formatCurrency, formatCurrencySplit } from "@/lib/data/wallet";
@@ -68,6 +69,7 @@ export function PortfoliosPane({
           <Button size="xl" onClick={onCreatePortfolio}>
             <Plus size={16} />
             Create Portfolio
+            <Kbd>C</Kbd>
           </Button>
         </div>
       </header>

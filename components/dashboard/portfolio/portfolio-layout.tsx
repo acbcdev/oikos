@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { TrendingUp, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import {
   Empty,
   EmptyHeader,
@@ -25,6 +27,8 @@ export function PortfolioLayout() {
     null,
   );
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  useHotkeys("c", () => setCreateModalOpen(true), { preventDefault: true });
 
   return (
     <main className="flex flex-col min-h-screen gap-8 px-8 py-8">
@@ -56,6 +60,7 @@ export function PortfolioLayout() {
           <Button size="xl" onClick={() => setCreateModalOpen(true)}>
             <Plus size={14} />
             Create Portfolio
+            <Kbd>C</Kbd>
           </Button>
         </Empty>
       )}

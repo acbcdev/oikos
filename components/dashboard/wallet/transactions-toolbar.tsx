@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
   Search,
   SlidersHorizontal,
@@ -9,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import {
   Popover,
   PopoverContent,
@@ -33,6 +35,8 @@ const TX_TYPES: { value: TxType; label: string }[] = [
 
 export function TransactionsToolbar() {
   const [modalOpen, setModalOpen] = useState(false);
+
+  useHotkeys("n", () => setModalOpen(true), { preventDefault: true });
   const accounts = useWalletStore((s) => s.accounts);
 
   const {
@@ -198,6 +202,7 @@ export function TransactionsToolbar() {
         <Button onClick={() => setModalOpen(true)} size="xl">
           <ArrowUpRight size={16} />
           Add Transaction
+          <Kbd>N</Kbd>
         </Button>
       </search>
 

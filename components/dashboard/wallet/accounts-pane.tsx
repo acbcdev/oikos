@@ -4,6 +4,7 @@ import { useMemo, useState, useCallback } from "react";
 import { Landmark, PiggyBank, TrendingUp, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { formatCurrencySplit, formatCurrency } from "@/lib/data/wallet";
 import { useWalletStore } from "@/lib/store/wallet-store";
@@ -120,6 +121,7 @@ export function AccountsPane({ onAddAccount }: AccountsPaneProps) {
           <Button size="xl" onClick={onAddAccount}>
             <Plus size={16} />
             Add Account
+            <Kbd>C</Kbd>
           </Button>
         </div>
       </header>

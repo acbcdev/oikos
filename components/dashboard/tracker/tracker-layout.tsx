@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Plus, Search, LayoutGrid, List, TrendingDown, Target, AlertTriangle, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/data/wallet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Kbd } from "@/components/ui/kbd";
 import { useTrackerStore, useSpendMonitorsWithSpend, useSavingsGoals } from "@/lib/store/tracker-store";
 import { SpendMonitorCard } from "./spend-monitor-card";
 import { SavingsGoalCard } from "./savings-goal-card";
@@ -200,6 +202,8 @@ export function TrackerLayout() {
   const [view, setView] = useState<ViewMode>("grid");
   const [search, setSearch] = useState("");
 
+  useHotkeys("n", () => setAddOpen(true), { preventDefault: true });
+
   useEffect(() => {
     const unsub = useTrackerStore.persist.onFinishHydration(() => setHydrated(true));
     useTrackerStore.persist.rehydrate();
@@ -241,6 +245,7 @@ export function TrackerLayout() {
           <Button size="lg" onClick={() => setAddOpen(true)} className="gap-2 font-display font-bold tracking-wide uppercase text-xs">
             <Plus size={14} />
             New Tracker
+            <Kbd>N</Kbd>
           </Button>
         </div>
       </div>

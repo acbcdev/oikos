@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import {
   Empty,
   EmptyHeader,
@@ -29,6 +31,8 @@ export function WalletLayout() {
 
   const hasAccounts = useWalletStore((s) => s.accounts.length > 0);
   const [linkModalOpen, setLinkModalOpen] = useState(false);
+
+  useHotkeys("c", () => setLinkModalOpen(true), { preventDefault: true });
 
   if (!hydrated) {
     return (
@@ -69,6 +73,7 @@ export function WalletLayout() {
           <Button size={"xl"} onClick={() => setLinkModalOpen(true)}>
             <Plus size={14} />
             Add Account
+            <Kbd>C</Kbd>
           </Button>
         </Empty>
       )}
