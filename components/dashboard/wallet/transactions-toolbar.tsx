@@ -17,11 +17,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { useWalletStore } from "@/lib/store/wallet-store";
 import { DEFAULT_CATEGORIES } from "@/lib/data/wallet";
-import { useWalletFilterStore, type TxType } from "@/lib/store/wallet-filter-store";
+import type { Account, Transaction } from "@/lib/data/wallet";
 import { AddTransactionModal } from "./add-transaction-modal";
 import { DateRangePicker } from "./date-range-picker";
+import type { TxType } from "../wallet/wallet-layout";
 
 const EXPENSE_CATEGORIES = DEFAULT_CATEGORIES.filter(
   (c) => c.id !== "income" && c.id !== "transfer",
@@ -33,26 +33,44 @@ const TX_TYPES: { value: TxType; label: string }[] = [
   { value: "transfer", label: "Transfer" },
 ];
 
-export function TransactionsToolbar() {
+interface TransactionsToolbarProps {
+  query: string;
+  setQuery: (q: string) => void;
+  selectedAccountIds: string[];
+  selectedCategories: string[];
+  selectedTypes: TxType[];
+  dateFrom: string | null;
+  dateTo: string | null;
+  presetLabel: string | null;
+  toggleCategory: (cat: string) => void;
+  toggleType: (type: TxType) => void;
+  setCustomDateRange: (from: string | null, to: string | null, label?: string) => void;
+  toggleAccount: (id: string) => void;
+  clearAll: () => void;
+  accounts: Account[];
+  onSubmit: (tx: Transaction) => void;
+}
+
+export function TransactionsToolbar({
+  query,
+  setQuery,
+  selectedAccountIds,
+  selectedCategories,
+  selectedTypes,
+  dateFrom,
+  dateTo,
+  presetLabel,
+  toggleCategory,
+  toggleType,
+  setCustomDateRange,
+  toggleAccount,
+  clearAll,
+  accounts,
+  onSubmit,
+}: TransactionsToolbarProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   useHotkeys("n", () => setModalOpen(true), { preventDefault: true });
-  const accounts = useWalletStore((s) => s.accounts);
-
-  const {
-    query,
-    setQuery,
-    selectedAccountIds,
-    selectedCategories,
-    selectedTypes,
-    dateFrom,
-    dateTo,
-    presetLabel,
-    toggleCategory,
-    toggleType,
-    setCustomDateRange,
-    clearAll,
-  } = useWalletFilterStore();
 
   const typeFilterCount =
     selectedAccountIds.length + selectedCategories.length + selectedTypes.length;
@@ -64,7 +82,7 @@ export function TransactionsToolbar() {
     chips.push({
       key: `account:${id}`,
       label: acc?.institution ?? id,
-      onRemove: () => useWalletFilterStore.getState().toggleAccount(id),
+      onRemove: () => toggleAccount(id),
     });
   }
   for (const catId of selectedCategories) {
@@ -234,7 +252,13 @@ export function TransactionsToolbar() {
         </div>
       )}
 
-      <AddTransactionModal open={modalOpen} onOpenChange={setModalOpen} />
+      <AddTransactionModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        accounts={accounts}
+        lastUsedAccountId={null}
+        onSubmit={onSubmit}
+      />
     </div>
   );
 }
