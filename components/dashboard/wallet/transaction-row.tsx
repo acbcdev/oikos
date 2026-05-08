@@ -23,9 +23,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Transaction } from "@/lib/data/wallet";
+import type { Transaction, Account } from "@/lib/data/wallet";
 import { formatCurrency } from "@/lib/data/wallet";
-import { useWalletStore } from "@/lib/store/wallet-store";
 import { AddTransactionModal } from "./add-transaction-modal";
 
 const categoryConfig: Record<
@@ -76,21 +75,25 @@ const categoryConfig: Record<
   },
 };
 
+interface TransactionRowProps {
+  transaction: Transaction;
+  onDeleteRequest: (id: string) => void;
+  accounts: Account[];
+  onSubmit: (tx: Transaction) => void;
+}
+
 export function TransactionRow({
   transaction,
   onDeleteRequest,
-}: {
-  transaction: Transaction;
-  onDeleteRequest: (id: string) => void;
-}) {
+  accounts,
+  onSubmit,
+}: TransactionRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const config = categoryConfig[transaction.categoryId] ?? categoryConfig["food"];
   const Icon = config.icon;
   const isCredit = transaction.amount > 0;
-  const account = useWalletStore((s) =>
-    s.accounts.find((a) => a.id === transaction.accountId),
-  );
+  const account = accounts.find((a) => a.id === transaction.accountId);
 
   const formattedDate = new Date(transaction.date).toLocaleDateString("en-US", {
     weekday: "short",
@@ -193,6 +196,9 @@ export function TransactionRow({
         open={editOpen}
         onOpenChange={setEditOpen}
         transaction={transaction}
+        accounts={accounts}
+        lastUsedAccountId={null}
+        onSubmit={onSubmit}
       />
     </>
   );
