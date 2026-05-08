@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/chart";
 import { useWalletStore, useDashboardMetrics } from "@/lib/store/wallet-store";
 import { useTrackerStore, useSpendMonitorsWithSpend, useSavingsGoals } from "@/lib/store/tracker-store";
+import { isHighSpend } from "@/lib/services/spend-analysis";
 import { formatCurrency, formatCurrencySplit } from "@/lib/data/wallet";
 
 const netWorthChartConfig = {
@@ -229,7 +230,7 @@ export function BurnRateCard({ currency = null }: { currency?: string | null }) 
   const { whole, decimal } = formatCurrencySplit(burnTotal, displayCurrency);
 
   const totalLimit = monitors.reduce((s, m) => s + m.limit, 0);
-  const isHighRate = totalLimit > 0 ? burnTotal > totalLimit : burnTotal > 1000;
+  const isHighRate = isHighSpend(burnTotal, totalLimit);
 
   return (
     <Card className="rounded-2xl py-0 h-56 relative overflow-hidden group glass-card">
