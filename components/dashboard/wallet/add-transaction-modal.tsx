@@ -1,21 +1,14 @@
 "use client";
 
-import { useMemo, useEffect, useRef } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Pencil, Plus } from "lucide-react";
+import { useEffect, useMemo, useRef } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Plus, Pencil } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -24,10 +17,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { DatePicker } from "@/components/ui/date-picker";
-import { useWalletStore } from "@/lib/store/wallet-store";
-import type { Transaction } from "@/lib/data/wallet";
-import { formatCurrency, DEFAULT_CATEGORIES } from "@/lib/data/wallet";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import type { Account, Category, Transaction } from "@/lib/data/wallet";
+import { DEFAULT_CATEGORIES, formatCurrency } from "@/lib/data/wallet";
 import { formatInteger, stripNumberFormat } from "@/lib/utils/number-format";
 
 type TransactionType = "expense" | "income" | "transfer";
@@ -78,20 +77,23 @@ const transactionSchema = z
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
 
+interface AddTransactionModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  transaction?: Transaction;
+  accounts: Account[];
+  lastUsedAccountId: string | null;
+  onSubmit: (tx: Transaction) => void;
+}
+
 export function AddTransactionModal({
   open,
   onOpenChange,
   transaction,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  transaction?: Transaction;
-}) {
-  const accounts = useWalletStore((s) => s.accounts);
-  const lastUsedAccountId = useWalletStore((s) => s.lastUsedAccountId);
-  const addTransaction = useWalletStore((s) => s.addTransaction);
-  const updateTransaction = useWalletStore((s) => s.updateTransaction);
-
+  accounts,
+  lastUsedAccountId,
+  onSubmit: onSubmitProp,
+}: AddTransactionModalProps) {
   const defaultAccountId =
     (lastUsedAccountId && accounts.find((a) => a.id === lastUsedAccountId)
       ? lastUsedAccountId
@@ -204,7 +206,7 @@ export function AddTransactionModal({
       const categoryId =
         data.type === "transfer" ? "transfer" : data.categoryId;
 
-      const patch = {
+      const txData = {
         description:
           data.description ||
           (data.type === "transfer" ? "Account Transfer" : "Manual Entry"),
@@ -212,17 +214,17 @@ export function AddTransactionModal({
         amount: signedAmount,
         accountId: data.fromAccount,
         toAccountId: data.type === "transfer" ? data.toAccount : undefined,
+        date: data.date,
       };
 
       if (transaction) {
-        updateTransaction(transaction.id, { ...patch, date: data.date });
+        onSubmitProp({ ...transaction, ...txData });
         toast.success("Transaction updated");
       } else {
-        addTransaction({
-          ...patch,
+        onSubmitProp({
           id: `txn-${Date.now()}`,
-          date: data.date,
-        });
+          ...txData,
+        } as Transaction);
         toast.success("Transaction added");
       }
 
