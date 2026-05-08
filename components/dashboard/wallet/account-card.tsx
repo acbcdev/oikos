@@ -28,7 +28,6 @@ import { Button } from "@/components/ui/button";
 import type { Account } from "@/lib/data/wallet";
 import { formatCurrencySplit } from "@/lib/data/wallet";
 import { cn } from "@/lib/utils";
-import { useWalletFilterStore } from "@/lib/store/wallet-filter-store";
 import { EditAccountModal } from "./edit-account-modal";
 
 const typeIcons: Record<Account["type"], React.ElementType> = {
@@ -43,18 +42,22 @@ const typeLabels: Record<Account["type"], string> = {
   investment: "Investment",
 };
 
+interface AccountCardProps {
+  account: Account;
+  onDeleteRequest: (id: string) => void;
+  isSelected: boolean;
+  toggleAccount: (id: string) => void;
+}
+
 export function AccountCard({
   account,
   onDeleteRequest,
-}: {
-  account: Account;
-  onDeleteRequest: (id: string) => void;
-}) {
+  isSelected,
+  toggleAccount,
+}: AccountCardProps) {
   const Icon = typeIcons[account.type];
   const { whole, decimal } = formatCurrencySplit(account.balance, account.currency);
   const [editOpen, setEditOpen] = useState(false);
-  const isSelected = useWalletFilterStore((s) => s.selectedAccountIds.includes(account.id));
-  const toggleAccount = useWalletFilterStore((s) => s.toggleAccount);
 
   return (
     <>
