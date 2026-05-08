@@ -29,9 +29,11 @@ const institutionIcons: Record<string, React.ElementType> = {
 
 interface AccountsPaneProps {
   onAddAccount: () => void;
+  selectedAccountIds: string[];
+  toggleAccount: (id: string) => void;
 }
 
-export function AccountsPane({ onAddAccount }: AccountsPaneProps) {
+export function AccountsPane({ onAddAccount, selectedAccountIds, toggleAccount }: AccountsPaneProps) {
   const accounts = useWalletStore((s) => s.accounts);
   const removeAccount = useWalletStore((s) => s.removeAccount);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -136,6 +138,8 @@ export function AccountsPane({ onAddAccount }: AccountsPaneProps) {
               <AccountCard
                 account={account}
                 onDeleteRequest={handleDeleteRequest}
+                isSelected={selectedAccountIds.includes(account.id)}
+                toggleAccount={toggleAccount}
               />
             </div>
           ))}
