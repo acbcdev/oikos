@@ -2,12 +2,14 @@
 
 import { PiggyBank, Flame, Trophy, TrendingUp, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useDashboardStore } from "@/lib/store/dashboard-store";
 import { useReportData } from "@/lib/store/wallet-store";
-import { formatCompactCurrency } from "@/lib/data/reports";
+import { formatCompactCurrency, type Timeframe } from "@/lib/data/reports";
 
-export function SavingsRateCard() {
-  const { timeframe } = useDashboardStore();
+interface CardProps {
+  timeframe: Timeframe;
+}
+
+export function SavingsRateCard({ timeframe }: CardProps) {
   const { avgSavingsRate, savingsRateChange } = useReportData(timeframe);
   const isPositive = savingsRateChange >= 0;
 
@@ -38,8 +40,7 @@ export function SavingsRateCard() {
   );
 }
 
-export function HighestBurnCard() {
-  const { timeframe } = useDashboardStore();
+export function HighestBurnCard({ timeframe }: CardProps) {
   const { highestBurnCategory, highestBurnAmount } = useReportData(timeframe);
 
   return (
@@ -67,8 +68,7 @@ export function HighestBurnCard() {
   );
 }
 
-export function BestSavingMonthCard() {
-  const { timeframe } = useDashboardStore();
+export function BestSavingMonthCard({ timeframe }: CardProps) {
   const { bestSavingMonth, bestSavingAmount } = useReportData(timeframe);
 
   return (
@@ -97,8 +97,7 @@ export function BestSavingMonthCard() {
   );
 }
 
-export function IncomeVsSpendCard() {
-  const { timeframe } = useDashboardStore();
+export function IncomeVsSpendCard({ timeframe }: CardProps) {
   const { totalIncome, totalExpenses } = useReportData(timeframe);
   const total = totalIncome + totalExpenses;
   const incomePercent = total > 0 ? (totalIncome / total) * 100 : 50;
@@ -152,8 +151,7 @@ export function IncomeVsSpendCard() {
   );
 }
 
-export function MonthlyRunwayCard() {
-  const { timeframe } = useDashboardStore();
+export function MonthlyRunwayCard({ timeframe }: CardProps) {
   const { monthlyRunway } = useReportData(timeframe);
 
   const years = Math.floor(monthlyRunway / 12);
