@@ -26,8 +26,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { DatePicker } from "@/components/ui/date-picker";
-import { useWalletStore } from "@/lib/store/wallet-store";
-import { useTrackerStore, type Tracker } from "@/lib/store/tracker-store";
+import type { Category } from "@/lib/data/wallet";
+import type { Tracker } from "@/lib/store/tracker-store";
 
 function defaultDeadline(): string {
   const d = new Date();
@@ -65,9 +65,17 @@ interface AddTrackerModalProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   tracker?: Tracker;
+  categories: Category[];
+  onSubmit: (tracker: Tracker) => void;
 }
 
-export function AddTrackerModal({ open, onOpenChange, tracker }: AddTrackerModalProps) {
+export function AddTrackerModal({
+  open,
+  onOpenChange,
+  tracker,
+  categories,
+  onSubmit: onSubmitProp,
+}: AddTrackerModalProps) {
   const isEdit = !!tracker;
   const [type, setType] = useState<TrackerType>("spend-monitor");
 
@@ -85,9 +93,6 @@ export function AddTrackerModal({ open, onOpenChange, tracker }: AddTrackerModal
         submitGoal: "Create Goal",
       };
 
-  const addTracker = useTrackerStore((s) => s.addTracker);
-  const updateTracker = useTrackerStore((s) => s.updateTracker);
-  const categories = useWalletStore((s) => s.categories);
 
   const expenseCategories = categories.filter((c) => EXPENSE_CATEGORY_IDS.includes(c.id));
 
@@ -135,51 +140,32 @@ export function AddTrackerModal({ open, onOpenChange, tracker }: AddTrackerModal
   };
 
   const onSubmitMonitor = (data: MonitorForm) => {
-    if (isEdit && tracker) {
-      updateTracker(tracker.id, {
-        name: data.name.trim(),
-        categoryId: data.categoryId,
-        currency: data.currency,
-        limit: parseFloat(data.limit),
-        period: data.period,
-      });
-    } else {
-      const t: Tracker = {
-        id: `tm-${Date.now()}`,
-        type: "spend-monitor",
-        name: data.name.trim(),
-        categoryId: data.categoryId,
-        currency: data.currency,
-        limit: parseFloat(data.limit),
-        period: data.period,
-      };
-      addTracker(t);
-    }
+    const t: Tracker = {
+      id: tracker?.id || `tm-${Date.now()}`,
+      type: "spend-monitor",
+      name: data.name.trim(),
+      categoryId: data.categoryId,
+      currency: data.currency,
+      limit: parseFloat(data.limit),
+      period: data.period,
+    };
+    onSubmitProp(t);
     handleClose();
   };
 
   const onSubmitGoal = (data: GoalForm) => {
-    if (isEdit && tracker) {
-      updateTracker(tracker.id, {
-        name: data.name.trim(),
-        currency: data.currency,
-        targetAmount: parseFloat(data.targetAmount),
-        deadline: data.deadline || undefined,
-      });
-    } else {
-      const t: Tracker = {
-        id: `sg-${Date.now()}`,
-        type: "savings-goal",
-        name: data.name.trim(),
-        currency: data.currency,
-        targetAmount: parseFloat(data.targetAmount),
-        currentAmount: 0,
-        deadline: data.deadline || undefined,
-        lastContributedAt: null,
-        contributions: [],
-      };
-      addTracker(t);
-    }
+    const t: Tracker = {
+      id: tracker?.id || `sg-${Date.now()}`,
+      type: "savings-goal",
+      name: data.name.trim(),
+      currency: data.currency,
+      targetAmount: parseFloat(data.targetAmount),
+      currentAmount: tracker?.type === "savings-goal" ? tracker.currentAmount : 0,
+      deadline: data.deadline || undefined,
+      lastContributedAt: tracker?.type === "savings-goal" ? tracker.lastContributedAt : null,
+      contributions: tracker?.type === "savings-goal" ? tracker.contributions : [],
+    };
+    onSubmitProp(t);
     handleClose();
   };
 
