@@ -7,7 +7,7 @@ const meta = {
   title: 'Dashboard/Wallet/AccountCard',
   component: AccountCard,
   parameters: { layout: 'centered' },
-  args: { onDeleteRequest: () => {} },
+  args: { onDeleteRequest: () => {}, isSelected: false, toggleAccount: () => {} },
   decorators: [
     (Story) => React.createElement('div', { className: 'w-72' }, React.createElement(Story)),
   ],
