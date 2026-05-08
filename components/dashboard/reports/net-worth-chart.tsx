@@ -16,8 +16,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatCompactCurrency, type MonthlyNetWorth } from "@/lib/data/reports";
-import { useDashboardStore } from "@/lib/store/dashboard-store";
+import { formatCompactCurrency, type MonthlyNetWorth, type Timeframe } from "@/lib/data/reports";
 import { useReportData } from "@/lib/store/wallet-store";
 
 const chartConfig = {
@@ -41,8 +40,11 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
   );
 }
 
-export function NetWorthChart() {
-  const { timeframe } = useDashboardStore();
+interface NetWorthChartProps {
+  timeframe: Timeframe;
+}
+
+export function NetWorthChart({ timeframe }: NetWorthChartProps) {
   const { chartData, totalNetWorth, ytdChange } = useReportData(timeframe);
 
   const hasData = chartData.some((d) => !d.isProjected);
