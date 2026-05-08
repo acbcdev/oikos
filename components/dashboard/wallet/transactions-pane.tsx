@@ -13,13 +13,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   useGroupedTransactions,
-  useWalletStore,
 } from "@/lib/store/wallet-store";
 import { toast } from "sonner";
-import { useWalletFilterStore } from "@/lib/store/wallet-filter-store";
 import { TransactionRow } from "./transaction-row";
-
-type TxType = "income" | "expense" | "transfer";
+import type { TxType } from "./wallet-layout";
+import type { Account, Transaction } from "@/lib/data/wallet";
 
 function txTypeFromCategoryId(categoryId: string): TxType {
   if (categoryId === "income") return "income";
@@ -27,21 +25,39 @@ function txTypeFromCategoryId(categoryId: string): TxType {
   return "expense";
 }
 
-export function TransactionsPane() {
+interface TransactionsPaneProps {
+  query: string;
+  selectedAccountIds: string[];
+  selectedCategories: string[];
+  selectedTypes: TxType[];
+  dateFrom: string | null;
+  dateTo: string | null;
+  accounts: Account[];
+  onSubmit: (tx: Transaction) => void;
+  onDeleteRequest: (id: string) => void;
+}
+
+export function TransactionsPane({
+  query,
+  selectedAccountIds,
+  selectedCategories,
+  selectedTypes,
+  dateFrom,
+  dateTo,
+  accounts,
+  onSubmit,
+  onDeleteRequest: onDeleteRequestProp,
+}: TransactionsPaneProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const transactionGroups = useGroupedTransactions();
-  const removeTransaction = useWalletStore((s) => s.removeTransaction);
   const handleDeleteRequest = useCallback((id: string) => setDeleteId(id), []);
 
   const handleDeleteConfirm = () => {
     if (!deleteId) return;
-    removeTransaction(deleteId);
+    onDeleteRequestProp(deleteId);
     toast.success("Transaction deleted");
     setDeleteId(null);
   };
-
-  const { query, selectedAccountIds, selectedCategories, selectedTypes, dateFrom, dateTo } =
-    useWalletFilterStore();
 
   const totalFilterCount =
     selectedAccountIds.length +
@@ -96,7 +112,12 @@ export function TransactionsPane() {
             <ul className="flex flex-col gap-3 pb-4">
               {group.transactions.map((txn) => (
                 <li key={txn.id}>
-                  <TransactionRow transaction={txn} onDeleteRequest={handleDeleteRequest} />
+                  <TransactionRow
+                    transaction={txn}
+                    onDeleteRequest={handleDeleteRequest}
+                    accounts={accounts}
+                    onSubmit={onSubmit}
+                  />
                 </li>
               ))}
             </ul>
