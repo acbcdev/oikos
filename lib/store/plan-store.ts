@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useWalletStore } from "./wallet-store";
+import { analyzeSpend } from "@/lib/services/spend-analysis";
 
 export type SpendCeilingPlan = {
   id: string;
@@ -110,11 +111,9 @@ export function useSpendCeilingPlansWithSpend() {
           )
           .reduce((s, t) => s + Math.abs(t.amount), 0);
 
-        const percent = plan.limit > 0 ? (spent / plan.limit) * 100 : 0;
-        const remaining = plan.limit - spent;
-        const isOver = spent > plan.limit;
+        const { status, percentUsed: percent, remaining, isOver } = analyzeSpend(spent, plan.limit);
 
-        return { ...plan, spent, percent, remaining, isOver };
+        return { ...plan, spent, percent, remaining, isOver, status };
       });
   }, [plans, transactions, accounts]);
 }
