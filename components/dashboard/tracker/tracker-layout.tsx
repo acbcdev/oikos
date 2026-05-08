@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Plus, Search, LayoutGrid, List, TrendingDown, Target, AlertTriangle, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { formatCurrency } from "@/lib/data/wallet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
+import { useWalletStore } from "@/lib/store/wallet-store";
 import { useTrackerStore, useSpendMonitorsWithSpend, useSavingsGoals } from "@/lib/store/tracker-store";
 import { SpendMonitorCard } from "./spend-monitor-card";
 import { SavingsGoalCard } from "./savings-goal-card";
@@ -213,6 +214,23 @@ export function TrackerLayout() {
   const monitors = useSpendMonitorsWithSpend();
   const goals = useSavingsGoals();
   const removeTracker = useTrackerStore((s) => s.removeTracker);
+  const categories = useWalletStore((s) => s.categories);
+  const addTracker = useTrackerStore((s) => s.addTracker);
+  const updateTracker = useTrackerStore((s) => s.updateTracker);
+
+  const handleTrackerSubmit = useCallback(
+    (tracker: Tracker) => {
+      if (tracker.id.startsWith("tm-") || tracker.id.startsWith("sg-")) {
+        // New tracker
+        addTracker(tracker);
+      } else {
+        // Update existing tracker
+        const { id, ...patch } = tracker;
+        updateTracker(id, patch);
+      }
+    },
+    [addTracker, updateTracker],
+  );
 
   const q = search.toLowerCase();
   const filteredMonitors = monitors.filter((m) => m.name.toLowerCase().includes(q));
@@ -385,11 +403,18 @@ export function TrackerLayout() {
         </div>
       )}
 
-      <AddTrackerModal open={addOpen} onOpenChange={setAddOpen} />
+      <AddTrackerModal
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        categories={categories}
+        onSubmit={handleTrackerSubmit}
+      />
       <AddTrackerModal
         open={!!editTarget}
         onOpenChange={(v) => { if (!v) setEditTarget(null); }}
         tracker={editTarget ?? undefined}
+        categories={categories}
+        onSubmit={handleTrackerSubmit}
       />
       <ContributeModal
         open={!!contributeGoal}
