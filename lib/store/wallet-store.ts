@@ -20,7 +20,6 @@ interface WalletState {
   accounts: Account[];
   transactions: Transaction[];
   categories: Category[];
-  lastUsedAccountId: string | null;
 }
 
 type WalletActions = {
@@ -43,11 +42,9 @@ export const useWalletStore = create<WalletState & WalletActions>()(
       accounts: [],
       transactions: [],
       categories: DEFAULT_CATEGORIES,
-      lastUsedAccountId: null,
       addTransaction: (tx) =>
         set((state) => ({
           transactions: [tx, ...state.transactions],
-          lastUsedAccountId: tx.accountId,
           accounts: state.accounts.map((a) => {
             if (a.id === tx.accountId) return { ...a, balance: a.balance + tx.amount };
             if (tx.toAccountId && a.id === tx.toAccountId) return { ...a, balance: a.balance + Math.abs(tx.amount) };
@@ -63,7 +60,6 @@ export const useWalletStore = create<WalletState & WalletActions>()(
             transactions: state.transactions.map((t) =>
               t.id === id ? updated : t,
             ),
-            lastUsedAccountId: updated.accountId,
             accounts: state.accounts.map((a) => {
               if (a.id === old.accountId && a.id === updated.accountId) {
                 return {
