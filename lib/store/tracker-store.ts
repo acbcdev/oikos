@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useWalletStore } from "./wallet-store";
+import { analyzeSpend, type SpendStatus } from "@/lib/services/spend-analysis";
 
 export type SpendMonitor = {
   id: string;
@@ -192,11 +193,7 @@ export function useSpendMonitorsWithSpend(): SpendMonitorWithDerived[] {
           })
           .reduce((s, t) => s + Math.abs(t.amount), 0);
 
-        const pct = monitor.limit > 0 ? (spent / monitor.limit) * 100 : 0;
-        const remaining = monitor.limit - spent;
-        const isOver = spent > monitor.limit;
-        const status: "on-track" | "at-risk" | "over" =
-          isOver ? "over" : pct >= 80 ? "at-risk" : "on-track";
+        const { status, percentUsed: pct, remaining, isOver } = analyzeSpend(spent, monitor.limit);
 
         return { ...monitor, spent, pct, remaining, isOver, status };
       });
