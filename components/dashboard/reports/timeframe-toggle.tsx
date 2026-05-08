@@ -2,13 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import type { Timeframe } from "@/lib/data/reports";
-import { useDashboardStore } from "@/lib/store/dashboard-store";
 
 const timeframes: Timeframe[] = ["1M", "3M", "6M", "1Y", "YTD"];
 
-export function TimeframeToggle() {
-  const { timeframe: active, setTimeframe: setActive } = useDashboardStore();
+interface TimeframeToggleProps {
+  timeframe: Timeframe;
+  setTimeframe: (tf: Timeframe) => void;
+}
 
+export function TimeframeToggle({ timeframe: active, setTimeframe: setActive }: TimeframeToggleProps) {
   return (
     <div className="flex p-1.5 bg-card border border-border/50 rounded-xl">
       {timeframes.map((tf) => (
