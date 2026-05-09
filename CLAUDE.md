@@ -1,31 +1,37 @@
 # CLAUDE.md
 
-Personal finance tracker (Next.js 16, App Router, Tailwind v4, shadcn base-nova).
+Personal finance tracker (shadcn base-nova).
 
-## Commands
+<principles>
 
-```bash
-pnpm dev          # dev server — port 3000
-pnpm lint         # ESLint
-pnpm tsc --noEmit # type-check
-```
+- **KISS** Keep it simple: Focus on core features that deliver immediate value. Avoid over-engineering or adding complexity before it's needed.
 
-> **Never run `pnpm build`** — dev server is sufficient for verification.
+- **Data-first** Prioritize accurate, real-time financial data. The app's value hinges on trustworthy insights into spending and saving habits.
 
-If `pnpm dev` fails with a lock error:
-```bash
-pkill -f "next dev"; rm -rf .next/dev/lock
-```
+- **User-centric** Design with the user in mind. Intuitive UI, clear feedback, and thoughtful defaults to make financial management approachable for everyone.
+
+</principles>
 
 ## Stack
 
-- **Next.js 16** — App Router, React Server Components, Turbopack
-- **Tailwind CSS v4** — config in `app/globals.css` via `@theme inline {}`, no `tailwind.config.js`
-- **shadcn/ui** `base-nova` style — uses `@base-ui/react` primitives, **not Radix**
-- **lucide-react** for icons
-- **Zustand** for client state
+- Check out `package.json` for the full list of dependencies
 
 ## Docs
 
+- [DESING.md — typography, spacing, color tokens](docs/design.md)
 - [Architecture — routes, component model, stores](docs/architecture.md)
 - [UI Conventions — tokens, shadcn base-nova, buttons, modals, RSC rules](docs/ui-conventions.md)
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues at github.com/acbcdev/oikos. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default label vocabulary (needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context repo — one `CONTEXT.md` at root + `docs/adr/`. See `docs/agents/domain.md`.

@@ -8,5 +8,12 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn"
-  ]
+  ],
+  "skillOverrides": {
+    "diagnose": "name-only",
+    "grill-with-docs": "name-only",
+    "improve-codebase-architecture": "name-only",
+    "prototype": "name-only",
+    "grill-me": "name-only"
+  }
 }
