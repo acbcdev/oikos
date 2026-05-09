@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { useWalletStore } from "./wallet-store";
 import { analyzeSpend } from "@/lib/services/spend-analysis";
+import { useWalletStore } from "./wallet-store";
 
 export type SpendCeilingPlan = {
   id: string;
@@ -70,8 +70,7 @@ export const usePlanStore = create<PlanState>()(
   persist(
     (set) => ({
       plans: [],
-      addPlan: (plan) =>
-        set((state) => ({ plans: [...state.plans, plan] })),
+      addPlan: (plan) => set((state) => ({ plans: [...state.plans, plan] })),
       updatePlan: (id, patch) =>
         set((state) => ({
           plans: state.plans.map((p) =>
@@ -111,7 +110,12 @@ export function useSpendCeilingPlansWithSpend() {
           )
           .reduce((s, t) => s + Math.abs(t.amount), 0);
 
-        const { status, percentUsed: percent, remaining, isOver } = analyzeSpend(spent, plan.limit);
+        const {
+          status,
+          percentUsed: percent,
+          remaining,
+          isOver,
+        } = analyzeSpend(spent, plan.limit);
 
         return { ...plan, spent, percent, remaining, isOver, status };
       });

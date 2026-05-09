@@ -199,12 +199,12 @@
 > Each theme is a `themes/<name>.css` that overrides the Oikos token set.
 > Token values are derived from the brand's DESIGN.md from getdesign.md.
 
-| Theme slug | Brand inspiration | Notes |
-| ---------- | ----------------- | ----- |
-| `oikos` | Default | Current dark palette — ships as baseline |
-| `linear` | Linear.app | High-contrast dark, sharp radius, mono accents |
-| `stripe` | Stripe | Purple gradient accent, weight-300 elegance |
-| `notion` | Notion | Neutral off-white, minimal chrome, serif hints |
+| Theme slug | Brand inspiration | Notes                                          |
+| ---------- | ----------------- | ---------------------------------------------- |
+| `oikos`    | Default           | Current dark palette — ships as baseline       |
+| `linear`   | Linear.app        | High-contrast dark, sharp radius, mono accents |
+| `stripe`   | Stripe            | Purple gradient accent, weight-300 elegance    |
+| `notion`   | Notion            | Neutral off-white, minimal chrome, serif hints |
 
 > Add more by dropping a DESIGN.md into context and generating a new `.css` override file.
 
