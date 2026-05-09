@@ -1,13 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PiggyBank, TrendingDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { TrendingDown, PiggyBank } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
 import {
@@ -17,17 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { DatePicker } from "@/components/ui/date-picker";
 import type { Category } from "@/lib/data/wallet";
 import type { Tracker } from "@/lib/store/tracker-store";
+import { cn } from "@/lib/utils";
 
 function defaultDeadline(): string {
   const d = new Date();
@@ -35,7 +35,13 @@ function defaultDeadline(): string {
   return d.toLocaleDateString("en-CA");
 }
 
-const EXPENSE_CATEGORY_IDS = ["food", "transport", "shopping", "entertainment", "transfer"];
+const EXPENSE_CATEGORY_IDS = [
+  "food",
+  "transport",
+  "shopping",
+  "entertainment",
+  "transfer",
+];
 const CURRENCIES = ["USD", "COP", "EUR", "GBP"];
 const PERIODS = [
   { value: "monthly", label: "Monthly" },
@@ -93,17 +99,29 @@ export function AddTrackerModal({
         submitGoal: "Create Goal",
       };
 
-
-  const expenseCategories = categories.filter((c) => EXPENSE_CATEGORY_IDS.includes(c.id));
+  const expenseCategories = categories.filter((c) =>
+    EXPENSE_CATEGORY_IDS.includes(c.id),
+  );
 
   const monitorForm = useForm<MonitorForm>({
     resolver: zodResolver(monitorSchema),
-    defaultValues: { name: "", categoryId: "", currency: "USD", limit: "", period: "monthly" },
+    defaultValues: {
+      name: "",
+      categoryId: "",
+      currency: "USD",
+      limit: "",
+      period: "monthly",
+    },
   });
 
   const goalForm = useForm<GoalForm>({
     resolver: zodResolver(goalSchema),
-    defaultValues: { name: "", currency: "USD", targetAmount: "", deadline: defaultDeadline() },
+    defaultValues: {
+      name: "",
+      currency: "USD",
+      targetAmount: "",
+      deadline: defaultDeadline(),
+    },
   });
 
   useEffect(() => {
@@ -128,8 +146,19 @@ export function AddTrackerModal({
       }
     } else {
       setType("spend-monitor");
-      monitorForm.reset({ name: "", categoryId: "", currency: "USD", limit: "", period: "monthly" });
-      goalForm.reset({ name: "", currency: "USD", targetAmount: "", deadline: defaultDeadline() });
+      monitorForm.reset({
+        name: "",
+        categoryId: "",
+        currency: "USD",
+        limit: "",
+        period: "monthly",
+      });
+      goalForm.reset({
+        name: "",
+        currency: "USD",
+        targetAmount: "",
+        deadline: defaultDeadline(),
+      });
     }
   }, [open, tracker]);
 
@@ -160,10 +189,13 @@ export function AddTrackerModal({
       name: data.name.trim(),
       currency: data.currency,
       targetAmount: parseFloat(data.targetAmount),
-      currentAmount: tracker?.type === "savings-goal" ? tracker.currentAmount : 0,
+      currentAmount:
+        tracker?.type === "savings-goal" ? tracker.currentAmount : 0,
       deadline: data.deadline || undefined,
-      lastContributedAt: tracker?.type === "savings-goal" ? tracker.lastContributedAt : null,
-      contributions: tracker?.type === "savings-goal" ? tracker.contributions : [],
+      lastContributedAt:
+        tracker?.type === "savings-goal" ? tracker.lastContributedAt : null,
+      contributions:
+        tracker?.type === "savings-goal" ? tracker.contributions : [],
     };
     onSubmitProp(t);
     handleClose();
@@ -171,12 +203,17 @@ export function AddTrackerModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent showCloseButton className="sm:max-w-lg bg-card border-white/5 p-0 gap-0">
+      <DialogContent
+        showCloseButton
+        className="sm:max-w-lg bg-card border-white/5 p-0 gap-0"
+      >
         <header className="px-8 pt-8 pb-6">
           <DialogTitle className="text-xl font-bold text-foreground font-display tracking-tight">
             {labels.title}
           </DialogTitle>
-          <p className="text-xs text-muted-foreground mt-1">{labels.subtitle}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {labels.subtitle}
+          </p>
         </header>
 
         {/* type selector — hidden in edit mode (type is fixed) */}
@@ -184,8 +221,18 @@ export function AddTrackerModal({
           <div className="px-8 pb-5">
             <div className="grid grid-cols-2 gap-2">
               {[
-                { value: "spend-monitor" as TrackerType, icon: TrendingDown, label: "Limit", desc: "Cap category spend" },
-                { value: "savings-goal" as TrackerType, icon: PiggyBank, label: "Target", desc: "Save toward a goal" },
+                {
+                  value: "spend-monitor" as TrackerType,
+                  icon: TrendingDown,
+                  label: "Limit",
+                  desc: "Cap category spend",
+                },
+                {
+                  value: "savings-goal" as TrackerType,
+                  icon: PiggyBank,
+                  label: "Target",
+                  desc: "Save toward a goal",
+                },
               ].map(({ value, icon: Icon, label, desc }) => {
                 const selected = type === value;
                 return (
@@ -200,9 +247,14 @@ export function AddTrackerModal({
                         : "border-border/50 bg-secondary/30 text-muted-foreground hover:border-border hover:bg-secondary/60 hover:text-foreground",
                     )}
                   >
-                    <Icon size={15} className={selected ? "text-primary" : ""} />
+                    <Icon
+                      size={15}
+                      className={selected ? "text-primary" : ""}
+                    />
                     <div>
-                      <p className="text-xs font-bold font-display uppercase tracking-wider">{label}</p>
+                      <p className="text-xs font-bold font-display uppercase tracking-wider">
+                        {label}
+                      </p>
                       <p className="text-[10px] opacity-60">{desc}</p>
                     </div>
                   </button>
@@ -226,7 +278,13 @@ export function AddTrackerModal({
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input size="lg" placeholder="e.g. Food & Dining" autoFocus autoComplete="off" {...field} />
+                      <Input
+                        size="lg"
+                        placeholder="e.g. Food & Dining"
+                        autoFocus
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -240,7 +298,10 @@ export function AddTrackerModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger size="lg">
                             <SelectValue placeholder="Select..." />
@@ -265,7 +326,10 @@ export function AddTrackerModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Period</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger size="lg" className="capitalize">
                             <SelectValue />
@@ -292,7 +356,12 @@ export function AddTrackerModal({
                     <FormItem>
                       <FormLabel>Limit</FormLabel>
                       <FormControl>
-                        <NumberInput size="lg" placeholder="0.00" onValueChange={field.onChange} {...field} />
+                        <NumberInput
+                          size="lg"
+                          placeholder="0.00"
+                          onValueChange={field.onChange}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -305,7 +374,10 @@ export function AddTrackerModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Currency</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger size="lg">
                             <SelectValue />
@@ -313,7 +385,9 @@ export function AddTrackerModal({
                         </FormControl>
                         <SelectContent>
                           {CURRENCIES.map((c) => (
-                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -323,7 +397,12 @@ export function AddTrackerModal({
               </div>
 
               <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" className="flex-1" onClick={handleClose}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleClose}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">
@@ -348,7 +427,13 @@ export function AddTrackerModal({
                   <FormItem>
                     <FormLabel>Goal Name</FormLabel>
                     <FormControl>
-                      <Input size="lg" placeholder="e.g. Vacation Fund" autoFocus autoComplete="off" {...field} />
+                      <Input
+                        size="lg"
+                        placeholder="e.g. Vacation Fund"
+                        autoFocus
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -363,7 +448,12 @@ export function AddTrackerModal({
                     <FormItem>
                       <FormLabel>Target</FormLabel>
                       <FormControl>
-                        <NumberInput size="lg" placeholder="0.00" onValueChange={field.onChange} {...field} />
+                        <NumberInput
+                          size="lg"
+                          placeholder="0.00"
+                          onValueChange={field.onChange}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -376,7 +466,10 @@ export function AddTrackerModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Currency</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger size="lg">
                             <SelectValue />
@@ -384,7 +477,9 @@ export function AddTrackerModal({
                         </FormControl>
                         <SelectContent>
                           {CURRENCIES.map((c) => (
-                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -414,7 +509,12 @@ export function AddTrackerModal({
               />
 
               <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" className="flex-1" onClick={handleClose}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleClose}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">

@@ -1,15 +1,15 @@
 "use client";
 
-import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-
-import { cn } from "@/lib/utils";
+import type * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: <custome role>
     <div
       data-slot="input-group"
       role="group"
@@ -49,6 +49,8 @@ function InputGroupAddon({
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof inputGroupAddonVariants>) {
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: <for simplicity, we allow click only on the container, not on individual elements>
+    // biome-ignore lint/a11y/useSemanticElements: <data role is group, not presentation>
     <div
       role="group"
       data-slot="input-group-addon"
@@ -118,6 +120,7 @@ function InputGroupText({ className, ...props }: React.ComponentProps<"span">) {
 
 function InputGroupInput({
   className,
+  size: _size,
   ...props
 }: React.ComponentProps<"input">) {
   return (
