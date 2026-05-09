@@ -13,9 +13,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   useGroupedTransactions,
+  useWalletStore,
 } from "@/lib/store/wallet-store";
 import { toast } from "sonner";
 import { TransactionRow } from "./transaction-row";
+import { TransactionModal } from "./transaction-modal";
 import type { TxType } from "./wallet-layout";
 import type { Account, Transaction } from "@/lib/data/wallet";
 
@@ -33,7 +35,6 @@ interface TransactionsPaneProps {
   dateFrom: string | null;
   dateTo: string | null;
   accounts: Account[];
-  onSubmit: (tx: Transaction) => void;
   onDeleteRequest: (id: string) => void;
 }
 
@@ -45,11 +46,14 @@ export function TransactionsPane({
   dateFrom,
   dateTo,
   accounts,
-  onSubmit,
   onDeleteRequest: onDeleteRequestProp,
 }: TransactionsPaneProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<Transaction | null>(null);
+
   const transactionGroups = useGroupedTransactions();
+  const updateTransaction = useWalletStore((s) => s.updateTransaction);
+
   const handleDeleteRequest = useCallback((id: string) => setDeleteId(id), []);
 
   const handleDeleteConfirm = () => {
@@ -58,6 +62,14 @@ export function TransactionsPane({
     toast.success("Transaction deleted");
     setDeleteId(null);
   };
+
+  const handleSubmit = useCallback(
+    (tx: Transaction) => {
+      const { id, ...patch } = tx;
+      updateTransaction(id, patch);
+    },
+    [updateTransaction],
+  );
 
   const totalFilterCount =
     selectedAccountIds.length +
@@ -116,7 +128,7 @@ export function TransactionsPane({
                     transaction={txn}
                     onDeleteRequest={handleDeleteRequest}
                     accounts={accounts}
-                    onSubmit={onSubmit}
+                    onEdit={setEditTarget}
                   />
                 </li>
               ))}
@@ -147,6 +159,15 @@ export function TransactionsPane({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <TransactionModal
+        open={!!editTarget}
+        onOpenChange={(open) => { if (!open) setEditTarget(null); }}
+        transaction={editTarget ?? undefined}
+        accounts={accounts}
+        lastUsedAccountId={null}
+        onSubmit={handleSubmit}
+      />
     </section>
   );
 }

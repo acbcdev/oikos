@@ -10,7 +10,7 @@ import {
 } from "@/components/dashboard/metric-cards";
 import { BurnDistribution } from "@/components/dashboard/burn-distribution";
 import { useWalletStore, useAvailableCurrencies } from "@/lib/store/wallet-store";
-import { AddTransactionModal } from "@/components/dashboard/wallet/add-transaction-modal";
+import { TransactionModal } from "@/components/dashboard/wallet/transaction-modal";
 import { TimeframeToggle } from "@/components/dashboard/reports/timeframe-toggle";
 import { NetWorthChart } from "@/components/dashboard/reports/net-worth-chart";
 import {
@@ -104,7 +104,7 @@ export function DashboardLayout() {
           </Button>
         </div>
       </header>
-      <AddTransactionModal
+      <TransactionModal
         open={addTxOpen}
         onOpenChange={setAddTxOpen}
         accounts={accounts}

@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
 import {
-  Search,
-  SlidersHorizontal,
   ArrowUpRight,
   CalendarDays,
+  Search,
+  SlidersHorizontal,
   X,
 } from "lucide-react";
+import { useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import {
@@ -16,12 +16,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { DEFAULT_CATEGORIES } from "@/lib/data/wallet";
 import type { Account, Transaction } from "@/lib/data/wallet";
-import { AddTransactionModal } from "./add-transaction-modal";
-import { DateRangePicker } from "./date-range-picker";
+import { DEFAULT_CATEGORIES } from "@/lib/data/wallet";
+import { useWalletStore } from "@/lib/store/wallet-store";
+import { cn } from "@/lib/utils";
 import type { TxType } from "../wallet/wallet-layout";
+import { DateRangePicker } from "./date-range-picker";
+import { TransactionModal } from "./transaction-modal";
 
 const EXPENSE_CATEGORIES = DEFAULT_CATEGORIES.filter(
   (c) => c.id !== "income" && c.id !== "transfer",
@@ -44,11 +45,14 @@ interface TransactionsToolbarProps {
   presetLabel: string | null;
   toggleCategory: (cat: string) => void;
   toggleType: (type: TxType) => void;
-  setCustomDateRange: (from: string | null, to: string | null, label?: string) => void;
+  setCustomDateRange: (
+    from: string | null,
+    to: string | null,
+    label?: string,
+  ) => void;
   toggleAccount: (id: string) => void;
   clearAll: () => void;
   accounts: Account[];
-  onSubmit: (tx: Transaction) => void;
 }
 
 export function TransactionsToolbar({
@@ -66,14 +70,16 @@ export function TransactionsToolbar({
   toggleAccount,
   clearAll,
   accounts,
-  onSubmit,
 }: TransactionsToolbarProps) {
   const [modalOpen, setModalOpen] = useState(false);
+  const addTransaction = useWalletStore((s) => s.addTransaction);
 
   useHotkeys("n", () => setModalOpen(true), { preventDefault: true });
 
   const typeFilterCount =
-    selectedAccountIds.length + selectedCategories.length + selectedTypes.length;
+    selectedAccountIds.length +
+    selectedCategories.length +
+    selectedTypes.length;
   const hasDateFilter = dateFrom !== null || dateTo !== null;
 
   const chips: { key: string; label: string; onRemove: () => void }[] = [];
@@ -86,8 +92,13 @@ export function TransactionsToolbar({
     });
   }
   for (const catId of selectedCategories) {
-    const catName = DEFAULT_CATEGORIES.find((c) => c.id === catId)?.name ?? catId;
-    chips.push({ key: `cat:${catId}`, label: catName, onRemove: () => toggleCategory(catId) });
+    const catName =
+      DEFAULT_CATEGORIES.find((c) => c.id === catId)?.name ?? catId;
+    chips.push({
+      key: `cat:${catId}`,
+      label: catName,
+      onRemove: () => toggleCategory(catId),
+    });
   }
   for (const type of selectedTypes) {
     chips.push({
@@ -139,7 +150,10 @@ export function TransactionsToolbar({
           >
             <SlidersHorizontal size={18} />
           </PopoverTrigger>
-          <PopoverContent align="end" className="gap-0 p-4 w-72 bg-card border-white/10">
+          <PopoverContent
+            align="end"
+            className="gap-0 p-4 w-72 bg-card border-white/10"
+          >
             <div className="mb-4">
               <p className="mb-2 text-xs font-bold tracking-widest uppercase font-display text-muted-foreground">
                 Type
@@ -148,6 +162,7 @@ export function TransactionsToolbar({
                 {TX_TYPES.map(({ value, label }) => (
                   <button
                     key={value}
+                    type="button"
                     onClick={() => toggleType(value)}
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-xs font-display font-bold uppercase tracking-wider transition-colors",
@@ -169,6 +184,7 @@ export function TransactionsToolbar({
                 {EXPENSE_CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
+                    type="button"
                     onClick={() => toggleCategory(cat.id)}
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-xs font-display font-bold uppercase tracking-wider transition-colors",
@@ -185,6 +201,7 @@ export function TransactionsToolbar({
             {typeFilterCount > 0 && (
               <button
                 onClick={clearAll}
+                type="button"
                 className="w-full pt-3 text-xs font-bold tracking-wider uppercase transition-colors border-t font-display text-muted-foreground hover:text-foreground border-white/5"
               >
                 Clear all filters
@@ -208,7 +225,10 @@ export function TransactionsToolbar({
           >
             <CalendarDays size={18} />
           </PopoverTrigger>
-          <PopoverContent side="left" className="gap-0 p-4 w-90 bg-card border-white/10">
+          <PopoverContent
+            side="left"
+            className="gap-0 p-4 w-90 bg-card border-white/10"
+          >
             <DateRangePicker
               dateFrom={dateFrom}
               dateTo={dateTo}
@@ -234,6 +254,7 @@ export function TransactionsToolbar({
               {chip.label}
               <button
                 onClick={chip.onRemove}
+                type="button"
                 className="transition-colors hover:text-white"
                 aria-label={`Remove ${chip.label} filter`}
               >
@@ -244,6 +265,7 @@ export function TransactionsToolbar({
           {chips.length >= 2 && (
             <button
               onClick={clearAll}
+              type="button"
               className="text-xs font-bold tracking-wider uppercase transition-colors font-display text-muted-foreground hover:text-foreground"
             >
               Clear all
@@ -252,12 +274,12 @@ export function TransactionsToolbar({
         </div>
       )}
 
-      <AddTransactionModal
+      <TransactionModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         accounts={accounts}
         lastUsedAccountId={null}
-        onSubmit={onSubmit}
+        onSubmit={addTransaction}
       />
     </div>
   );

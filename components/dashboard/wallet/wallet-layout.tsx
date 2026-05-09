@@ -13,7 +13,6 @@ import {
   EmptyDescription,
 } from "@/components/ui/empty";
 import { useWalletStore } from "@/lib/store/wallet-store";
-import type { Transaction } from "@/lib/data/wallet";
 import { AccountsPane } from "./accounts-pane";
 import { TransactionsPane } from "./transactions-pane";
 import { TransactionsToolbar } from "./transactions-toolbar";
@@ -35,21 +34,7 @@ export function WalletLayout() {
   const hasAccounts = useWalletStore((s) => s.accounts.length > 0);
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const accounts = useWalletStore((s) => s.accounts);
-  const addTransaction = useWalletStore((s) => s.addTransaction);
-  const updateTransaction = useWalletStore((s) => s.updateTransaction);
   const removeTransaction = useWalletStore((s) => s.removeTransaction);
-
-  const handleTransactionSubmit = useCallback(
-    (tx: Transaction) => {
-      if (tx.id.startsWith("txn-")) {
-        addTransaction(tx);
-      } else {
-        const { id, ...patch } = tx;
-        updateTransaction(id, patch);
-      }
-    },
-    [addTransaction, updateTransaction],
-  );
 
   const handleDeleteRequest = useCallback(
     (id: string) => {
@@ -136,7 +121,6 @@ export function WalletLayout() {
               toggleAccount={toggleAccount}
               clearAll={clearFilters}
               accounts={accounts}
-              onSubmit={handleTransactionSubmit}
             />
           </div>
 
@@ -148,7 +132,6 @@ export function WalletLayout() {
             dateFrom={dateFrom}
             dateTo={dateTo}
             accounts={accounts}
-            onSubmit={handleTransactionSubmit}
             onDeleteRequest={handleDeleteRequest}
           />
         </>
