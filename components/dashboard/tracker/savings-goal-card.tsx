@@ -2,7 +2,7 @@
 
 import { Plane, Shield, Laptop, Home, Target, MoreHorizontal, Pencil, Trash2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/data/wallet";
+import { fmt } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -110,10 +110,10 @@ export function SavingsGoalCard({ goal, onEdit, onDelete, onContribute }: Saving
       {/* amount */}
       <div className="flex items-baseline gap-1.5">
         <span className="font-display text-2xl font-bold tabular-nums leading-none text-foreground">
-          {formatCurrency(goal.currentAmount, goal.currency)}
+          {fmt(goal.currentAmount, goal.currency)}
         </span>
         <span className="text-sm text-muted-foreground">
-          / {formatCurrency(goal.targetAmount, goal.currency)}{" "}
+          / {fmt(goal.targetAmount, goal.currency)}{" "}
           <span className="text-[10px] uppercase tracking-wider">{goal.currency}</span>
         </span>
       </div>
@@ -128,7 +128,7 @@ export function SavingsGoalCard({ goal, onEdit, onDelete, onContribute }: Saving
         </div>
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-muted-foreground">
-            {remaining > 0 ? `${formatCurrency(remaining, goal.currency)} to go` : "Goal reached"}
+            {remaining > 0 ? `${fmt(remaining, goal.currency)} to go` : "Goal reached"}
           </span>
           <span className="text-[11px] text-muted-foreground">{Math.round(clampedPct)}%</span>
         </div>

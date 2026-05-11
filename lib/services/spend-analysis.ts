@@ -7,8 +7,6 @@ export type SpendStatus = "on-track" | "at-risk" | "over";
 
 export interface SpendAnalysis {
   status: SpendStatus;
-  actual: number;
-  limit: number;
   percentUsed: number;
   remaining: number;
   isOver: boolean;
@@ -37,8 +35,6 @@ export function analyzeSpend(actual: number, limit: number): SpendAnalysis {
 
   return {
     status,
-    actual,
-    limit,
     percentUsed,
     remaining,
     isOver,

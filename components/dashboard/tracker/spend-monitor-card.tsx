@@ -14,7 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/data/wallet";
+import { fmt } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -130,10 +130,10 @@ export function SpendMonitorCard({ monitor, onEdit, onDelete }: SpendMonitorCard
             monitor.status === "over" ? "text-destructive" : "text-foreground",
           )}
         >
-          {formatCurrency(monitor.spent, monitor.currency)}
+          {fmt(monitor.spent, monitor.currency)}
         </span>
         <span className="text-sm text-muted-foreground">
-          / {formatCurrency(monitor.limit, monitor.currency)}{" "}
+          / {fmt(monitor.limit, monitor.currency)}{" "}
           <span className="text-[10px] uppercase tracking-wider">{monitor.currency}</span>
         </span>
       </div>
@@ -174,11 +174,11 @@ export function SpendMonitorCard({ monitor, onEdit, onDelete }: SpendMonitorCard
             {monitor.isOver ? (
               <>
                 <span className="mr-0.5">▲</span>
-                {formatCurrency(Math.abs(monitor.remaining), monitor.currency)} over (
+                {fmt(Math.abs(monitor.remaining), monitor.currency)} over (
                 {Math.round(monitor.pct)}%)
               </>
             ) : (
-              <>{formatCurrency(monitor.remaining, monitor.currency)} left</>
+              <>{fmt(monitor.remaining, monitor.currency)} left</>
             )}
           </span>
           <span className="text-[11px] text-muted-foreground">{Math.round(clampedPct)}%</span>

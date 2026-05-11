@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useWalletStore } from "./wallet-store";
-import { analyzeSpend, type SpendStatus } from "@/lib/services/spend-analysis";
+import { analyzeSpend } from "@/lib/services/spend-analysis";
+import { Dater } from "@/lib/utils/dater";
 
 export type SpendMonitor = {
   id: string;
@@ -36,14 +37,20 @@ export type SavingsGoal = {
 export type Tracker = SpendMonitor | SavingsGoal;
 
 interface TrackerState {
-  trackers: Tracker[];
-  addTracker: (t: Tracker) => void;
-  updateTracker: (id: string, patch: Partial<Omit<SpendMonitor, "id" | "type">> | Partial<Omit<SavingsGoal, "id" | "type">>) => void;
-  removeTracker: (id: string) => void;
+  monitors: SpendMonitor[];
+  goals: SavingsGoal[];
+  add: (item: Tracker) => void;
+  update: (
+    id: string,
+    patch:
+      | Partial<Omit<SpendMonitor, "id" | "type">>
+      | Partial<Omit<SavingsGoal, "id" | "type">>,
+  ) => void;
+  remove: (id: string) => void;
   addContribution: (goalId: string, contribution: Contribution) => void;
 }
 
-const SEED_TRACKERS: Tracker[] = [
+const SEED_MONITORS: SpendMonitor[] = [
   {
     id: "tm-food",
     type: "spend-monitor",
@@ -80,6 +87,9 @@ const SEED_TRACKERS: Tracker[] = [
     limit: 500,
     period: "monthly",
   },
+];
+
+const SEED_GOALS: SavingsGoal[] = [
   {
     id: "sg-vacation",
     type: "savings-goal",
@@ -130,25 +140,37 @@ const SEED_TRACKERS: Tracker[] = [
 export const useTrackerStore = create<TrackerState>()(
   persist(
     (set) => ({
-      trackers: SEED_TRACKERS,
-      addTracker: (t) => set((s) => ({ trackers: [...s.trackers, t] })),
-      updateTracker: (id, patch) =>
+      monitors: SEED_MONITORS,
+      goals: SEED_GOALS,
+      add: (item) =>
+        set((s) =>
+          item.type === "spend-monitor"
+            ? { monitors: [...s.monitors, item] }
+            : { goals: [...s.goals, item] },
+        ),
+      update: (id, patch) =>
         set((s) => ({
-          trackers: s.trackers.map((t) =>
-            t.id === id ? ({ ...t, ...patch } as Tracker) : t,
+          monitors: s.monitors.map((m) =>
+            m.id === id ? ({ ...m, ...patch } as SpendMonitor) : m,
+          ),
+          goals: s.goals.map((g) =>
+            g.id === id ? ({ ...g, ...patch } as SavingsGoal) : g,
           ),
         })),
-      removeTracker: (id) =>
-        set((s) => ({ trackers: s.trackers.filter((t) => t.id !== id) })),
+      remove: (id) =>
+        set((s) => ({
+          monitors: s.monitors.filter((m) => m.id !== id),
+          goals: s.goals.filter((g) => g.id !== id),
+        })),
       addContribution: (goalId, contribution) =>
         set((s) => ({
-          trackers: s.trackers.map((t) => {
-            if (t.id !== goalId || t.type !== "savings-goal") return t;
+          goals: s.goals.map((g) => {
+            if (g.id !== goalId) return g;
             return {
-              ...t,
-              currentAmount: t.currentAmount + contribution.amount,
+              ...g,
+              currentAmount: g.currentAmount + contribution.amount,
               lastContributedAt: contribution.date,
-              contributions: [...t.contributions, contribution],
+              contributions: [...g.contributions, contribution],
             };
           }),
         })),
@@ -165,45 +187,42 @@ export type SpendMonitorWithDerived = SpendMonitor & {
   status: "on-track" | "at-risk" | "over";
 };
 
-export function useSpendMonitorsWithSpend(): SpendMonitorWithDerived[] {
-  const trackers = useTrackerStore((s) => s.trackers);
+export function useTrackerData(): {
+  monitors: SpendMonitorWithDerived[];
+  goals: SavingsGoal[];
+} {
+  const monitors = useTrackerStore((s) => s.monitors);
+  const goals = useTrackerStore((s) => s.goals);
   const transactions = useWalletStore((s) => s.transactions);
   const accounts = useWalletStore((s) => s.accounts);
 
-  return useMemo(() => {
-    const now = new Date();
-    const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const thisWeekStart = new Date(now);
-    thisWeekStart.setDate(now.getDate() - now.getDay());
+  const enrichedMonitors = useMemo(() => {
+    const now = Dater.now();
+    const thisMonthStr = now.month();
+    const thisWeekStart = now.weekStart().iso();
 
-    return trackers
-      .filter((t): t is SpendMonitor => t.type === "spend-monitor")
-      .map((monitor) => {
-        const accountIdsForCurrency = new Set(
-          accounts.filter((a) => a.currency === monitor.currency).map((a) => a.id),
-        );
+    return monitors.map((monitor) => {
+      const accountIdsForCurrency = new Set(
+        accounts
+          .filter((a) => a.currency === monitor.currency)
+          .map((a) => a.id),
+      );
 
-        const spent = transactions
-          .filter((t) => {
-            if (t.categoryId !== monitor.categoryId) return false;
-            if (t.amount >= 0) return false;
-            if (!accountIdsForCurrency.has(t.accountId)) return false;
-            if (monitor.period === "monthly") return t.date.startsWith(thisMonthStr);
-            return new Date(t.date) >= thisWeekStart;
-          })
-          .reduce((s, t) => s + Math.abs(t.amount), 0);
+      const spent = transactions
+        .filter((t) => {
+          if (t.categoryId !== monitor.categoryId) return false;
+          if (t.amount >= 0) return false;
+          if (!accountIdsForCurrency.has(t.accountId)) return false;
+          if (monitor.period === "monthly") return t.date.startsWith(thisMonthStr);
+          return t.date >= thisWeekStart;
+        })
+        .reduce((s, t) => s + Math.abs(t.amount), 0);
 
-        const { status, percentUsed: pct, remaining, isOver } = analyzeSpend(spent, monitor.limit);
+      const { status, percentUsed: pct, remaining, isOver } = analyzeSpend(spent, monitor.limit);
 
-        return { ...monitor, spent, pct, remaining, isOver, status };
-      });
-  }, [trackers, transactions, accounts]);
-}
+      return { ...monitor, spent, pct, remaining, isOver, status };
+    });
+  }, [monitors, transactions, accounts]);
 
-export function useSavingsGoals(): SavingsGoal[] {
-  const trackers = useTrackerStore((s) => s.trackers);
-  return useMemo(
-    () => trackers.filter((t): t is SavingsGoal => t.type === "savings-goal"),
-    [trackers],
-  );
+  return { monitors: enrichedMonitors, goals };
 }

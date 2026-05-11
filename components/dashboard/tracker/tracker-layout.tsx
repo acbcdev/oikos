@@ -4,12 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Plus, Search, LayoutGrid, List, TrendingDown, Target, AlertTriangle, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/data/wallet";
+import { fmt } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
 import { useWalletStore } from "@/lib/store/wallet-store";
-import { useTrackerStore, useSpendMonitorsWithSpend, useSavingsGoals } from "@/lib/store/tracker-store";
+import { useTrackerStore, useTrackerData } from "@/lib/store/tracker-store";
 import { SpendMonitorCard } from "./spend-monitor-card";
 import { SavingsGoalCard } from "./savings-goal-card";
 import { AddTrackerModal } from "./add-tracker-modal";
@@ -56,7 +56,7 @@ function SummaryCards({
   monitors,
   goals,
 }: {
-  monitors: ReturnType<typeof useSpendMonitorsWithSpend>;
+  monitors: ReturnType<typeof useTrackerData>["monitors"];
   goals: SavingsGoal[];
 }) {
   const totalLimit = monitors.reduce((s, m) => s + m.limit, 0);
@@ -83,10 +83,10 @@ function SummaryCards({
         </div>
         <div>
           <p className="font-display text-2xl font-bold tabular-nums text-foreground">
-            {formatCurrency(totalSpent)}
+            {fmt(totalSpent)}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            / {formatCurrency(totalLimit)}{" "}
+            / {fmt(totalLimit)}{" "}
             <span className={cn("font-medium", totalSpent > totalLimit ? "text-destructive" : "text-muted-foreground")}>
               · {totalLimit > 0 ? Math.round((totalSpent / totalLimit) * 100) : 0}% used
             </span>
@@ -110,10 +110,10 @@ function SummaryCards({
         </div>
         <div>
           <p className="font-display text-2xl font-bold tabular-nums text-foreground">
-            {formatCurrency(totalSaved)}
+            {fmt(totalSaved)}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            / {formatCurrency(totalTarget)}{" "}
+            / {fmt(totalTarget)}{" "}
             <span className="font-medium text-muted-foreground">
               · {goals.length} active
             </span>
@@ -175,7 +175,7 @@ function SummaryCards({
               {mostBehindGoal.name}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {formatCurrency(mostBehindGoal.targetAmount - mostBehindGoal.currentAmount)} remaining ·{" "}
+              {fmt(mostBehindGoal.targetAmount - mostBehindGoal.currentAmount)} remaining ·{" "}
               {Math.round((mostBehindGoal.currentAmount / mostBehindGoal.targetAmount) * 100)}%
             </p>
             <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-secondary/60">
@@ -211,25 +211,22 @@ export function TrackerLayout() {
     return unsub;
   }, []);
 
-  const monitors = useSpendMonitorsWithSpend();
-  const goals = useSavingsGoals();
-  const removeTracker = useTrackerStore((s) => s.removeTracker);
+  const { monitors, goals } = useTrackerData();
+  const remove = useTrackerStore((s) => s.remove);
   const categories = useWalletStore((s) => s.categories);
-  const addTracker = useTrackerStore((s) => s.addTracker);
-  const updateTracker = useTrackerStore((s) => s.updateTracker);
+  const add = useTrackerStore((s) => s.add);
+  const update = useTrackerStore((s) => s.update);
 
   const handleTrackerSubmit = useCallback(
     (tracker: Tracker) => {
       if (tracker.id.startsWith("tm-") || tracker.id.startsWith("sg-")) {
-        // New tracker
-        addTracker(tracker);
+        add(tracker);
       } else {
-        // Update existing tracker
         const { id, ...patch } = tracker;
-        updateTracker(id, patch);
+        update(id, patch);
       }
     },
-    [addTracker, updateTracker],
+    [add, update],
   );
 
   const q = search.toLowerCase();
@@ -344,7 +341,7 @@ export function TrackerLayout() {
                 key={m.id}
                 monitor={m}
                 onEdit={() => setEditTarget(m)}
-                onDelete={() => removeTracker(m.id)}
+                onDelete={() => remove(m.id)}
               />
             ))}
           </div>
@@ -374,7 +371,7 @@ export function TrackerLayout() {
                 key={g.id}
                 goal={g}
                 onEdit={() => setEditTarget(g)}
-                onDelete={() => removeTracker(g.id)}
+                onDelete={() => remove(g.id)}
                 onContribute={() => setContributeGoal(g)}
               />
             ))}
