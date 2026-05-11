@@ -11,8 +11,7 @@ import {
   ChartTooltip,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { useDashboardMetrics } from "@/lib/store/wallet-store";
-import { formatCurrency } from "@/lib/data/wallet";
+import { fmt } from "@/lib/utils/currency";
 
 const CATEGORY_STYLE: Record<
   string,
@@ -72,14 +71,14 @@ function renderActiveShape(props: PieSectorDataItem) {
   );
 }
 
-export function BurnDistribution({
-  currency = null,
-}: {
-  currency?: string | null;
-}) {
+interface BurnDistributionProps {
+  categoryBreakdown: Array<{ label: string; amount: number; percent: number }>;
+  totalCategorySpend: number;
+  displayCurrency: string;
+}
+
+export function BurnDistribution({ categoryBreakdown, totalCategorySpend, displayCurrency }: BurnDistributionProps) {
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
-  const { categoryBreakdown, totalCategorySpend, displayCurrency } =
-    useDashboardMetrics(currency);
 
   const isEmpty = categoryBreakdown.length === 0;
 
@@ -183,7 +182,7 @@ export function BurnDistribution({
                           <span className="font-display font-bold text-xs text-foreground">{cat.label}</span>
                         </div>
                         <div className="font-display font-bold text-sm" style={{ color: cat.color }}>
-                          {formatCurrency(cat.amount, displayCurrency)}
+                          {fmt(cat.amount, displayCurrency)}
                           <span className="text-muted-foreground font-normal text-xs ml-2">{cat.percent}%</span>
                         </div>
                       </div>
@@ -195,7 +194,7 @@ export function BurnDistribution({
 
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ zIndex: 0 }}>
               <span className="text-foreground font-display text-3xl font-bold tracking-tighter">
-                {formatCurrency(totalCategorySpend, displayCurrency)}
+                {fmt(totalCategorySpend, displayCurrency)}
               </span>
               <span className="text-muted-foreground font-display text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">
                 Total Spend
@@ -235,7 +234,7 @@ export function BurnDistribution({
                       <span
                         className={`font-display text-xs font-bold ${cat.textClass} opacity-70`}
                       >
-                        {formatCurrency(cat.amount, displayCurrency)}
+                        {fmt(cat.amount, displayCurrency)}
                       </span>
                     </div>
                     <span className="text-muted-foreground font-body text-[10px] uppercase tracking-tight">
@@ -253,7 +252,7 @@ export function BurnDistribution({
                     <span className={cat.textClass}>{cat.label}</span>
                     <span className={`${cat.textClass} opacity-60`}>
                       {cat.percent}% ·{" "}
-                      {formatCurrency(cat.amount, displayCurrency)}
+                      {fmt(cat.amount, displayCurrency)}
                     </span>
                   </div>
                   <div className="h-1.5 w-full rounded-full overflow-hidden bg-white/5">

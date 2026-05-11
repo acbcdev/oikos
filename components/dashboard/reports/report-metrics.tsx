@@ -2,15 +2,9 @@
 
 import { PiggyBank, Flame, Trophy, TrendingUp, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useReportData } from "@/lib/store/wallet-store";
-import { formatCompactCurrency, type Timeframe } from "@/lib/data/reports";
+import { compact } from "@/lib/utils/currency";
 
-interface CardProps {
-  timeframe: Timeframe;
-}
-
-export function SavingsRateCard({ timeframe }: CardProps) {
-  const { avgSavingsRate, savingsRateChange } = useReportData(timeframe);
+export function SavingsRateCard({ avgSavingsRate, savingsRateChange }: { avgSavingsRate: number; savingsRateChange: number }) {
   const isPositive = savingsRateChange >= 0;
 
   return (
@@ -40,8 +34,7 @@ export function SavingsRateCard({ timeframe }: CardProps) {
   );
 }
 
-export function HighestBurnCard({ timeframe }: CardProps) {
-  const { highestBurnCategory, highestBurnAmount } = useReportData(timeframe);
+export function HighestBurnCard({ highestBurnCategory, highestBurnAmount }: { highestBurnCategory: string; highestBurnAmount: number }) {
 
   return (
     <Card className="p-8 rounded-3xl flex flex-col justify-between shadow-card h-52 bg-card border-border/50 group transition-all duration-300 hover:-translate-y-1 hover:bg-secondary hover:border-border">
@@ -68,8 +61,7 @@ export function HighestBurnCard({ timeframe }: CardProps) {
   );
 }
 
-export function BestSavingMonthCard({ timeframe }: CardProps) {
-  const { bestSavingMonth, bestSavingAmount } = useReportData(timeframe);
+export function BestSavingMonthCard({ bestSavingMonth, bestSavingAmount }: { bestSavingMonth: string; bestSavingAmount: number }) {
 
   return (
     <Card className="p-8 rounded-3xl flex flex-col justify-between shadow-card h-52 bg-card border-border/50 group transition-all duration-300 hover:-translate-y-1 hover:bg-secondary hover:border-border">
@@ -97,8 +89,7 @@ export function BestSavingMonthCard({ timeframe }: CardProps) {
   );
 }
 
-export function IncomeVsSpendCard({ timeframe }: CardProps) {
-  const { totalIncome, totalExpenses } = useReportData(timeframe);
+export function IncomeVsSpendCard({ totalIncome, totalExpenses }: { totalIncome: number; totalExpenses: number }) {
   const total = totalIncome + totalExpenses;
   const incomePercent = total > 0 ? (totalIncome / total) * 100 : 50;
   const expensePercent = 100 - incomePercent;
@@ -134,7 +125,7 @@ export function IncomeVsSpendCard({ timeframe }: CardProps) {
               Income
             </span>
             <span className="text-positive font-display text-2xl font-bold tracking-tighter">
-              {formatCompactCurrency(totalIncome)}
+              {compact(totalIncome)}
             </span>
           </div>
           <div className="flex flex-col items-end">
@@ -142,7 +133,7 @@ export function IncomeVsSpendCard({ timeframe }: CardProps) {
               Spend
             </span>
             <span className="text-destructive font-display text-2xl font-bold tracking-tighter">
-              {formatCompactCurrency(totalExpenses)}
+              {compact(totalExpenses)}
             </span>
           </div>
         </div>
@@ -151,8 +142,7 @@ export function IncomeVsSpendCard({ timeframe }: CardProps) {
   );
 }
 
-export function MonthlyRunwayCard({ timeframe }: CardProps) {
-  const { monthlyRunway } = useReportData(timeframe);
+export function MonthlyRunwayCard({ monthlyRunway }: { monthlyRunway: number }) {
 
   const years = Math.floor(monthlyRunway / 12);
   const months = monthlyRunway % 12;

@@ -10,6 +10,15 @@ import {
 } from "@/components/dashboard/metric-cards";
 import { BurnDistribution } from "@/components/dashboard/burn-distribution";
 import { useWalletStore, useAvailableCurrencies } from "@/lib/store/wallet-store";
+import { useMetrics } from "@/lib/hooks/use-metrics";
+import {
+  netWorth, worthSparkline, worthChange,
+  burnTotal, todayBurn, burnSparkline,
+  catBreakdown, catSpend,
+  chartData, ytdChange, income, expenses,
+  savingsRate, savingsChange, topCategory, topAmount,
+  bestMonth, bestSaved, runway,
+} from "@/lib/hooks/metrics";
 import { TransactionModal } from "@/components/dashboard/wallet/transaction-modal";
 import { TimeframeToggle } from "@/components/dashboard/reports/timeframe-toggle";
 import { NetWorthChart } from "@/components/dashboard/reports/net-worth-chart";
@@ -57,6 +66,18 @@ export function DashboardLayout() {
   const activeCurrency = isMultiCurrency
     ? (selectedCurrency ?? currencies[0] ?? null)
     : null;
+
+  const dash = useMetrics(
+    { netWorth, worthSparkline, worthChange, burnTotal, todayBurn, burnSparkline, catBreakdown, catSpend },
+    { currency: activeCurrency },
+  );
+
+  const report = useMetrics(
+    { chartData, ytdChange, income, expenses, savingsRate, savingsChange, topCategory, topAmount, bestMonth, bestSaved, runway },
+    { timeframe },
+  );
+
+  const displayCurrency = activeCurrency ?? accounts[0]?.currency ?? "USD";
 
   return (
     <>
@@ -115,22 +136,40 @@ export function DashboardLayout() {
       {/* Dashboard grid */}
       <div className="p-10 max-w-7xl mx-auto w-full flex-1 flex flex-col gap-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <NetWorthCard currency={activeCurrency} />
+          <NetWorthCard
+            totalNetWorth={dash.netWorth}
+            netWorthSparkline={dash.worthSparkline}
+            netWorthChangePct={dash.worthChange}
+            displayCurrency={displayCurrency}
+          />
           <ActiveGoalCard />
-          <BurnRateCard currency={activeCurrency} />
+          <BurnRateCard
+            burnTotal={dash.burnTotal}
+            todayBurn={dash.todayBurn}
+            burnSparkline={dash.burnSparkline}
+            displayCurrency={displayCurrency}
+          />
         </div>
-        <BurnDistribution currency={activeCurrency} />
-        <NetWorthChart timeframe={timeframe} />
+        <BurnDistribution
+          categoryBreakdown={dash.catBreakdown}
+          totalCategorySpend={dash.catSpend}
+          displayCurrency={displayCurrency}
+        />
+        <NetWorthChart
+          chartData={report.chartData}
+          totalNetWorth={dash.netWorth}
+          ytdChange={report.ytdChange}
+        />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <SavingsRateCard timeframe={timeframe} />
-          <HighestBurnCard timeframe={timeframe} />
-          <BestSavingMonthCard timeframe={timeframe} />
+          <SavingsRateCard avgSavingsRate={report.savingsRate} savingsRateChange={report.savingsChange} />
+          <HighestBurnCard highestBurnCategory={report.topCategory} highestBurnAmount={report.topAmount} />
+          <BestSavingMonthCard bestSavingMonth={report.bestMonth} bestSavingAmount={report.bestSaved} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <IncomeVsSpendCard timeframe={timeframe} />
+            <IncomeVsSpendCard totalIncome={report.income} totalExpenses={report.expenses} />
           </div>
-          <MonthlyRunwayCard timeframe={timeframe} />
+          <MonthlyRunwayCard monthlyRunway={report.runway} />
         </div>
       </div>
     </>

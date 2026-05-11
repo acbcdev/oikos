@@ -16,8 +16,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatCompactCurrency, type MonthlyNetWorth, type Timeframe } from "@/lib/data/reports";
-import { useReportData } from "@/lib/store/wallet-store";
+import { compact } from "@/lib/utils/currency";
+import type { MonthlyNetWorth } from "@/lib/data/reports";
 
 const chartConfig = {
   value: {
@@ -34,18 +34,19 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
   return (
     <div className="bg-card border border-border px-3 py-1.5 rounded-lg shadow-xl">
       <span className="text-foreground font-display font-bold text-xs">
-        {formatCompactCurrency(data.value)}
+        {compact(data.value)}
       </span>
     </div>
   );
 }
 
 interface NetWorthChartProps {
-  timeframe: Timeframe;
+  chartData: MonthlyNetWorth[];
+  totalNetWorth: number;
+  ytdChange: number;
 }
 
-export function NetWorthChart({ timeframe }: NetWorthChartProps) {
-  const { chartData, totalNetWorth, ytdChange } = useReportData(timeframe);
+export function NetWorthChart({ chartData, totalNetWorth, ytdChange }: NetWorthChartProps) {
 
   const hasData = chartData.some((d) => !d.isProjected);
 

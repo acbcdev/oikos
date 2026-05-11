@@ -27,10 +27,10 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { useWalletStore, useDashboardMetrics } from "@/lib/store/wallet-store";
-import { useTrackerStore, useSpendMonitorsWithSpend, useSavingsGoals } from "@/lib/store/tracker-store";
+import { useWalletStore } from "@/lib/store/wallet-store";
+import { useTrackerStore, useTrackerData } from "@/lib/store/tracker-store";
 import { isHighSpend } from "@/lib/services/spend-analysis";
-import { formatCurrency, formatCurrencySplit } from "@/lib/data/wallet";
+import { fmt, fmtSplit } from "@/lib/utils/currency";
 
 const netWorthChartConfig = {
   value: { label: "Net Worth", color: "var(--color-positive)" },
@@ -42,16 +42,20 @@ const burnChartConfig = {
 
 // ─── Net Worth ─────────────────────────────────────────────────────────────────
 
-export function NetWorthCard({ currency = null }: { currency?: string | null }) {
+interface NetWorthCardProps {
+  totalNetWorth: number;
+  netWorthSparkline: Array<{ month: string; value: number }>;
+  netWorthChangePct: number;
+  displayCurrency: string;
+}
+
+export function NetWorthCard({ totalNetWorth, netWorthSparkline, netWorthChangePct, displayCurrency }: NetWorthCardProps) {
   useEffect(() => {
     useWalletStore.persist.rehydrate();
   }, []);
 
-  const { totalNetWorth, netWorthSparkline, netWorthChangePct, displayCurrency } =
-    useDashboardMetrics(currency);
-
   const isUp = netWorthChangePct >= 0;
-  const { whole, decimal } = formatCurrencySplit(totalNetWorth, displayCurrency);
+  const { whole, decimal } = fmtSplit(totalNetWorth, displayCurrency);
 
   return (
     <Card className="rounded-2xl py-0 h-56 relative overflow-hidden group glass-card">
@@ -128,7 +132,7 @@ export function ActiveGoalCard() {
     useTrackerStore.persist.rehydrate();
   }, []);
 
-  const goals = useSavingsGoals();
+  const goals = useTrackerStore((s) => s.goals);
 
   const goal = goals.reduce<typeof goals[number] | null>((worst, g) => {
     const pct = g.targetAmount > 0 ? g.currentAmount / g.targetAmount : 1;
@@ -169,10 +173,10 @@ export function ActiveGoalCard() {
         <CardAction>
           <div className="text-right">
             <div className="text-foreground font-display text-2xl font-bold tracking-tight">
-              {formatCurrency(goal.currentAmount, goal.currency)}
+              {fmt(goal.currentAmount, goal.currency)}
             </div>
             <div className="text-muted-foreground font-display text-[9px] font-bold uppercase tracking-tight">
-              of {formatCurrency(goal.targetAmount, goal.currency)}
+              of {fmt(goal.targetAmount, goal.currency)}
             </div>
           </div>
         </CardAction>
@@ -204,7 +208,7 @@ export function ActiveGoalCard() {
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border bg-primary/5 border-primary/15">
             <PiggyBank size={12} className="text-primary" />
             <span className="text-primary font-display text-[9px] font-bold uppercase tracking-widest">
-              {formatCurrency(remaining, goal.currency)} left
+              {fmt(remaining, goal.currency)} left
             </span>
           </div>
           <div className="flex items-center gap-1 text-positive font-display text-[9px] font-bold uppercase tracking-widest">
@@ -223,11 +227,16 @@ export function ActiveGoalCard() {
 
 // ─── 30-Day Burn ───────────────────────────────────────────────────────────────
 
-export function BurnRateCard({ currency = null }: { currency?: string | null }) {
-  const { burnTotal, todayBurn, burnSparkline, displayCurrency } =
-    useDashboardMetrics(currency);
-  const monitors = useSpendMonitorsWithSpend();
-  const { whole, decimal } = formatCurrencySplit(burnTotal, displayCurrency);
+interface BurnRateCardProps {
+  burnTotal: number;
+  todayBurn: number;
+  burnSparkline: Array<{ day: string; value: number }>;
+  displayCurrency: string;
+}
+
+export function BurnRateCard({ burnTotal, todayBurn, burnSparkline, displayCurrency }: BurnRateCardProps) {
+  const { monitors } = useTrackerData();
+  const { whole, decimal } = fmtSplit(burnTotal, displayCurrency);
 
   const totalLimit = monitors.reduce((s, m) => s + m.limit, 0);
   const isHighRate = isHighSpend(burnTotal, totalLimit);
@@ -264,7 +273,7 @@ export function BurnRateCard({ currency = null }: { currency?: string | null }) 
           {todayBurn > 0 ? (
             <>
               <TrendingDown size={12} className="text-destructive" />+
-              {formatCurrency(todayBurn, displayCurrency)} tracked today
+              {fmt(todayBurn, displayCurrency)} tracked today
             </>
           ) : (
             <>
