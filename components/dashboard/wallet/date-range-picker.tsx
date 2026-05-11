@@ -6,14 +6,7 @@ import { type DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import {
-  toISO,
-  parseISO,
-  getWeekRange,
-  startOfMonth,
-  endOfMonth,
-  formatMonthYear,
-} from "@/lib/utils/date-helpers";
+import { Dater } from "@/lib/utils/dater";
 import {
   type ViewMode,
   type Preset,
@@ -122,8 +115,8 @@ export function DateRangePicker({
   const dateRange: DateRange | undefined =
     dateFrom || dateTo
       ? {
-          from: dateFrom ? parseISO(dateFrom) : undefined,
-          to: dateTo ? parseISO(dateTo) : undefined,
+          from: dateFrom ? Dater.from(dateFrom).toDate() : undefined,
+          to: dateTo ? Dater.from(dateTo).toDate() : undefined,
         }
       : undefined;
 
@@ -144,7 +137,7 @@ export function DateRangePicker({
 
   function getNavLabel(): string {
     if (mode === "custom" || mode === "weeks")
-      return formatMonthYear(viewMonth);
+      return Dater.of(viewMonth).fmt();
     if (mode === "months") return String(viewYear);
     return `${viewDecadeStart} – ${viewDecadeStart + 9}`;
   }
@@ -152,8 +145,8 @@ export function DateRangePicker({
   // Selection handlers
   function handleCustomSelect(range: DateRange | undefined) {
     onRangeChange(
-      range?.from ? toISO(range.from) : null,
-      range?.to ? toISO(range.to) : null,
+      range?.from ? Dater.of(range.from).iso() : null,
+      range?.to ? Dater.of(range.to).iso() : null,
     );
   }
 
@@ -163,16 +156,13 @@ export function DateRangePicker({
       onRangeChange(null, null);
       return;
     }
-    const r = getWeekRange(anchor);
-    onRangeChange(toISO(r.from), toISO(r.to));
+    const d = Dater.of(anchor);
+    onRangeChange(d.weekStart().iso(), d.weekEnd().iso());
   }
 
   function handleMonthClick(monthIdx: number) {
-    onRangeChange(
-      toISO(startOfMonth(viewYear, monthIdx)),
-      toISO(endOfMonth(viewYear, monthIdx)),
-      `${MONTH_NAMES[monthIdx]} ${viewYear}`,
-    );
+    const d = Dater.ofYM(viewYear, monthIdx);
+    onRangeChange(d.monthStart().iso(), d.monthEnd().iso(), `${MONTH_NAMES[monthIdx]} ${viewYear}`);
   }
 
   function handleYearClick(year: number) {
@@ -180,9 +170,10 @@ export function DateRangePicker({
   }
 
   // Active state
-  const isMonthActive = (i: number) =>
-    dateFrom === toISO(startOfMonth(viewYear, i)) &&
-    dateTo === toISO(endOfMonth(viewYear, i));
+  const isMonthActive = (i: number) => {
+    const d = Dater.ofYM(viewYear, i);
+    return dateFrom === d.monthStart().iso() && dateTo === d.monthEnd().iso();
+  };
   const isYearActive = (y: number) =>
     dateFrom === `${y}-01-01` && dateTo === `${y}-12-31`;
 

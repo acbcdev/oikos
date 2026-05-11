@@ -16,17 +16,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { CATEGORIES } from "@/lib/data/categories";
 import type { Account, Transaction } from "@/lib/data/wallet";
-import { DEFAULT_CATEGORIES } from "@/lib/data/wallet";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import { cn } from "@/lib/utils";
 import type { TxType } from "../wallet/wallet-layout";
 import { DateRangePicker } from "./date-range-picker";
 import { TransactionModal } from "./transaction-modal";
 
-const EXPENSE_CATEGORIES = DEFAULT_CATEGORIES.filter(
-  (c) => c.id !== "income" && c.id !== "transfer",
-);
+const EXPENSE_CATEGORIES = CATEGORIES.filter((c) => c.id !== "transfer");
 
 const TX_TYPES: { value: TxType; label: string }[] = [
   { value: "income", label: "Income" },
@@ -93,7 +91,7 @@ export function TransactionsToolbar({
   }
   for (const catId of selectedCategories) {
     const catName =
-      DEFAULT_CATEGORIES.find((c) => c.id === catId)?.name ?? catId;
+      CATEGORIES.find((c) => c.id === catId)?.name ?? catId;
     chips.push({
       key: `cat:${catId}`,
       label: catName,

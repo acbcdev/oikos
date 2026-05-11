@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import type { Account } from "@/lib/data/wallet";
-import { formatCurrencySplit } from "@/lib/data/wallet";
+import { fmtSplit } from "@/lib/utils/currency";
 import { cn } from "@/lib/utils";
 import { EditAccountModal } from "./edit-account-modal";
 
@@ -56,7 +56,7 @@ export function AccountCard({
   toggleAccount,
 }: AccountCardProps) {
   const Icon = typeIcons[account.type];
-  const { whole, decimal } = formatCurrencySplit(account.balance, account.currency);
+  const { whole, decimal } = fmtSplit(account.balance, account.currency);
   const [editOpen, setEditOpen] = useState(false);
 
   return (

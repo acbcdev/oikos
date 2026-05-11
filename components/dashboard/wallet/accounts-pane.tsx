@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { formatCurrencySplit, formatCurrency } from "@/lib/data/wallet";
+import { fmtSplit, fmt } from "@/lib/utils/currency";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import { AccountCard } from "./account-card";
 import {
@@ -73,7 +73,7 @@ export function AccountsPane({ onAddAccount, selectedAccountIds, toggleAccount }
                   {currency}
                 </span>
                 <span className="font-display font-bold text-foreground text-2xl tabular-nums leading-none">
-                  {formatCurrency(total, currency)}
+                  {fmt(total, currency)}
                 </span>
               </div>
             ))}
@@ -82,7 +82,7 @@ export function AccountsPane({ onAddAccount, selectedAccountIds, toggleAccount }
           <div className="flex items-baseline gap-3 mt-2">
             {liquidByCurrency.length > 0 ? (
               (() => {
-                const { whole, decimal } = formatCurrencySplit(
+                const { whole, decimal } = fmtSplit(
                   liquidByCurrency[0].total,
                   liquidByCurrency[0].currency,
                 );

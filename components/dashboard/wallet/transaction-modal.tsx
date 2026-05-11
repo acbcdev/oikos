@@ -28,7 +28,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { CATEGORIES } from "@/lib/data/categories";
 import type { Account, Transaction } from "@/lib/data/wallet";
-import { formatCurrency } from "@/lib/data/wallet";
+import { fmt } from "@/lib/utils/currency";
 import { formatInteger, stripNumberFormat } from "@/lib/utils/number-format";
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
@@ -187,7 +187,7 @@ function AccountSelect({
                         <span>{acc.name}</span>
                         <span className="text-xs text-muted-foreground capitalize">
                           {acc.type} ·{" "}
-                          {formatCurrency(acc.balance, acc.currency)}
+                          {fmt(acc.balance, acc.currency)}
                         </span>
                       </span>
                     </SelectItem>

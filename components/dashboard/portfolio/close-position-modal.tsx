@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { NumberInput } from "@/components/ui/number-input";
 import { useInvestmentStore } from "@/lib/store/investment-store";
-import { formatCurrency } from "@/lib/data/wallet";
+import { fmt } from "@/lib/utils/currency";
 import type { Position } from "@/lib/data/portfolio";
 
 interface ClosePositionModalProps {
@@ -101,7 +101,7 @@ export function ClosePositionModal({
               <div className="flex items-center justify-between text-xs font-display">
                 <span className="text-muted-foreground">Total proceeds</span>
                 <span className="font-bold text-foreground tabular-nums">
-                  {formatCurrency(totalValue, position.currency)}
+                  {fmt(totalValue, position.currency)}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs font-display">
@@ -110,7 +110,7 @@ export function ClosePositionModal({
                   className={`font-bold tabular-nums ${isGain ? "text-positive" : "text-negative"}`}
                 >
                   {isGain ? "+" : ""}
-                  {formatCurrency(gain, position.currency)}
+                  {fmt(gain, position.currency)}
                 </span>
               </div>
             </div>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useInvestmentStore, usePortfolioMetrics } from "@/lib/store/investment-store";
-import { formatCurrency, formatCurrencySplit } from "@/lib/data/wallet";
+import { fmt, fmtSplit } from "@/lib/utils/currency";
 import { PortfolioCard } from "./portfolio-card";
 
 interface PortfoliosPaneProps {
@@ -31,7 +31,7 @@ export function PortfoliosPane({
     [allPositions],
   );
 
-  const { whole, decimal } = formatCurrencySplit(globalMetrics.totalValue, displayCurrency);
+  const { whole, decimal } = fmtSplit(globalMetrics.totalValue, displayCurrency);
 
   return (
     <section>
@@ -53,7 +53,7 @@ export function PortfoliosPane({
             >
               {isGain ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
               {isGain ? "+" : ""}
-              {formatCurrency(globalMetrics.totalGain, displayCurrency)}{" "}
+              {fmt(globalMetrics.totalGain, displayCurrency)}{" "}
               <span className="opacity-70 text-xs">
                 ({isGain ? "+" : ""}
                 {globalMetrics.totalGainPct.toFixed(2)}%)

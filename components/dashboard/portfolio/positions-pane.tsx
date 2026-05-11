@@ -16,7 +16,7 @@ import {
   useInvestmentStore,
   usePortfolioMetrics,
 } from "@/lib/store/investment-store";
-import { formatCurrency } from "@/lib/data/wallet";
+import { fmt } from "@/lib/utils/currency";
 import { PositionRow } from "./position-row";
 import { AddPositionModal } from "./add-position-modal";
 
@@ -62,7 +62,7 @@ function PortfolioGroup({
             </h3>
             {metrics.totalValue > 0 && (
               <p className="text-xs font-display text-muted-foreground tabular-nums mt-0.5">
-                {formatCurrency(metrics.totalValue, currency)}
+                {fmt(metrics.totalValue, currency)}
                 <span className="ml-2 tracking-normal normal-case text-muted-foreground/50">
                   · {positions.length} position
                   {positions.length !== 1 ? "s" : ""}
@@ -84,7 +84,7 @@ function PortfolioGroup({
             >
               {isGain ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
               {isGain ? "+" : ""}
-              {formatCurrency(metrics.totalGain, currency)}{" "}
+              {fmt(metrics.totalGain, currency)}{" "}
               <span className="opacity-70">
                 ({isGain ? "+" : ""}
                 {metrics.totalGainPct.toFixed(2)}%)

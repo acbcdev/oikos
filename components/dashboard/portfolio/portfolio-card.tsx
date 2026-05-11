@@ -30,7 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useInvestmentStore, usePortfolioMetrics } from "@/lib/store/investment-store";
-import { formatCurrency, formatCurrencySplit } from "@/lib/data/wallet";
+import { fmt, fmtSplit } from "@/lib/utils/currency";
 import type { AssetType, Portfolio } from "@/lib/data/portfolio";
 import { CreatePortfolioModal } from "./create-portfolio-modal";
 
@@ -63,7 +63,7 @@ export function PortfolioCard({ portfolio, isSelected, onSelect }: PortfolioCard
   const currency = positions[0]?.currency ?? "USD";
   const isGain = metrics.totalGain >= 0;
 
-  const { whole, decimal } = formatCurrencySplit(metrics.totalValue, currency);
+  const { whole, decimal } = fmtSplit(metrics.totalValue, currency);
 
   return (
     <>
@@ -144,7 +144,7 @@ export function PortfolioCard({ portfolio, isSelected, onSelect }: PortfolioCard
             >
               {isGain ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
               {isGain ? "+" : ""}
-              {formatCurrency(metrics.totalGain, currency)}{" "}
+              {fmt(metrics.totalGain, currency)}{" "}
               <span className="opacity-70">
                 ({isGain ? "+" : ""}
                 {metrics.totalGainPct.toFixed(2)}%)

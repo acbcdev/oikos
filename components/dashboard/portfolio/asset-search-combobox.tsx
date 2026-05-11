@@ -10,6 +10,7 @@ import {
   ComboboxItem,
 } from "@/components/ui/combobox";
 import { cn } from "@/lib/utils";
+import { fmt } from "@/lib/utils/currency";
 import type { AssetSearchResult } from "@/app/api/search/assets/route";
 
 const typeConfig = {
@@ -162,11 +163,7 @@ export function AssetSearchCombobox({ onSelect }: AssetSearchComboboxProps) {
                   {asset.price !== undefined && (
                     <div className="flex flex-col items-end shrink-0">
                       <span className="text-sm font-bold font-display text-foreground">
-                        $
-                        {asset.price.toLocaleString("en-US", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {fmt(asset.price)}
                       </span>
                       {asset.changePercent !== undefined && (
                         <span

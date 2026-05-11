@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useInvestmentStore } from "@/lib/store/investment-store";
 import { computePnL } from "@/lib/data/portfolio";
-import { formatCurrency } from "@/lib/data/wallet";
+import { fmt } from "@/lib/utils/currency";
 import { refreshPositionPrice } from "@/lib/services/prices";
 import type { AssetType, Position } from "@/lib/data/portfolio";
 import { AddPositionModal } from "./add-position-modal";
@@ -114,7 +114,7 @@ export function PositionRow({ position }: { position: Position }) {
 
           <output className="text-right shrink-0">
             <p className="text-[15px] font-display font-bold tabular-nums text-foreground">
-              {formatCurrency(currentValue, position.currency)}
+              {fmt(currentValue, position.currency)}
             </p>
             <p
               className={`text-xs font-display font-bold tabular-nums mt-0.5 ${
@@ -184,7 +184,7 @@ export function PositionRow({ position }: { position: Position }) {
                   Cost Basis
                 </dt>
                 <dd className="text-sm font-bold font-display text-foreground tabular-nums">
-                  {formatCurrency(costBasis, position.currency)}
+                  {fmt(costBasis, position.currency)}
                 </dd>
               </div>
 
@@ -198,7 +198,7 @@ export function PositionRow({ position }: { position: Position }) {
                   }`}
                 >
                   {isGain ? "+" : ""}
-                  {formatCurrency(gain, position.currency)} ({isGain ? "+" : ""}
+                  {fmt(gain, position.currency)} ({isGain ? "+" : ""}
                   {gainPct.toFixed(2)}%)
                 </dd>
               </div>
@@ -208,7 +208,7 @@ export function PositionRow({ position }: { position: Position }) {
                   {isRealized ? "Sell Price / Unit" : "Current Price / Unit"}
                 </dt>
                 <dd className="text-sm font-bold font-display text-foreground tabular-nums">
-                  {formatCurrency(
+                  {fmt(
                     isRealized
                       ? (position.soldPrice ?? 0)
                       : position.currentPrice,
@@ -222,7 +222,7 @@ export function PositionRow({ position }: { position: Position }) {
                   Buy Price / Unit
                 </dt>
                 <dd className="text-sm font-bold font-display text-foreground tabular-nums">
-                  {formatCurrency(position.buyPrice, position.currency)}
+                  {fmt(position.buyPrice, position.currency)}
                 </dd>
               </div>
 

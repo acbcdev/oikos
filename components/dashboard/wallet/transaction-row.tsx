@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Account, Transaction } from "@/lib/data/wallet";
-import { formatCurrency } from "@/lib/data/wallet";
+import { fmt } from "@/lib/utils/currency";
 
 const categoryConfig: Record<
   string,
@@ -148,7 +148,7 @@ export function TransactionRow({
             className={`text-[15px] font-display font-bold tabular-nums ${isCredit ? "text-positive" : "text-foreground"}`}
           >
             {isCredit ? "+" : "−"}
-            {formatCurrency(Math.abs(transaction.amount))}
+            {fmt(Math.abs(transaction.amount))}
           </p>
         </output>
 

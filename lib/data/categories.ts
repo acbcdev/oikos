@@ -1,4 +1,5 @@
 import {
+  ArrowLeftRight,
   BookOpen,
   Briefcase,
   Car,
@@ -65,5 +66,8 @@ export const CATEGORIES: CategoryDef[] = [
   // Other
   { id: "gifts",         name: "Gifts",              icon: Gift,            color: "#f43f5e", desc: "Presents, donations"       },
   { id: "taxes",         name: "Taxes",              icon: Receipt,         color: "#64748b", desc: "Income, property taxes"    },
+  { id: "transfer",      name: "Transfer",            icon: ArrowLeftRight,  color: "#f97316", desc: "Between accounts"          },
   { id: "other",         name: "Other",              icon: MoreHorizontal,  color: "#6b7280", desc: "Miscellaneous"             },
 ];
+
+export const catLabel = (id: string) => CATEGORIES.find((c) => c.id === id)?.name ?? id;

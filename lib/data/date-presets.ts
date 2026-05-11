@@ -1,10 +1,4 @@
-import {
-  toISO,
-  parseISO,
-  getWeekRange,
-  startOfMonth,
-  endOfMonth,
-} from "@/lib/utils/date-helpers";
+import { Dater } from "@/lib/utils/dater";
 
 export type ViewMode = "custom" | "weeks" | "months" | "years";
 
@@ -14,40 +8,33 @@ export type Preset = {
 };
 
 function getToday() {
-  const iso = toISO(new Date());
+  const iso = Dater.now().iso();
   return { from: iso, to: iso };
 }
 
 function getThisWeek() {
-  const r = getWeekRange(new Date());
-  return { from: toISO(r.from), to: toISO(r.to) };
+  const now = Dater.now();
+  return { from: now.weekStart().iso(), to: now.weekEnd().iso() };
 }
 
 function getThisMonth() {
-  const t = new Date();
-  return {
-    from: toISO(startOfMonth(t.getFullYear(), t.getMonth())),
-    to: toISO(endOfMonth(t.getFullYear(), t.getMonth())),
-  };
+  const now = Dater.now();
+  return { from: now.monthStart().iso(), to: now.monthEnd().iso() };
 }
 
 function getThisYear() {
-  const y = new Date().getFullYear();
+  const y = Dater.now().year();
   return { from: `${y}-01-01`, to: `${y}-12-31` };
 }
 
 function getLastDays(n: number) {
-  const t = new Date();
-  const from = new Date(t);
-  from.setDate(t.getDate() - n);
-  return { from: toISO(from), to: toISO(t) };
+  const now = Dater.now();
+  return { from: now.addDays(-n).iso(), to: now.iso() };
 }
 
 function getLast12Months() {
-  const t = new Date();
-  const from = new Date(t);
-  from.setFullYear(t.getFullYear() - 1);
-  return { from: toISO(from), to: toISO(t) };
+  const now = Dater.now();
+  return { from: now.addYears(-1).iso(), to: now.iso() };
 }
 
 export const PRESETS_ROW1: Preset[] = [
@@ -93,8 +80,7 @@ export function formatDateTriggerLabel(
 ): string {
   if (presetLabel) return presetLabel;
   if (!dateFrom && !dateTo) return "Date";
-  const fmt = (iso: string) =>
-    parseISO(iso).toLocaleDateString("en", { month: "short", day: "numeric" });
+  const fmt = (iso: string) => Dater.from(iso).label();
   if (dateFrom && dateTo && dateFrom !== dateTo)
     return `${fmt(dateFrom)} – ${fmt(dateTo)}`;
   if (dateFrom) return fmt(dateFrom);
