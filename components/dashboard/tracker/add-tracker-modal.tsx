@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Category } from "@/lib/data/wallet";
+import type { CategoryDef } from "@/lib/data/categories";
 import type { Tracker } from "@/lib/store/tracker-store";
 import { cn } from "@/lib/utils";
 
@@ -71,7 +71,7 @@ interface AddTrackerModalProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   tracker?: Tracker;
-  categories: Category[];
+  categories: CategoryDef[];
   onSubmit: (tracker: Tracker) => void;
 }
 

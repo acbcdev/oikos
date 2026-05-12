@@ -8,7 +8,7 @@ import { fmt } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
-import { useWalletStore } from "@/lib/store/wallet-store";
+import { CATEGORIES } from "@/lib/data/categories";
 import { useTrackerStore, useTrackerData } from "@/lib/store/tracker-store";
 import { SpendMonitorCard } from "./spend-monitor-card";
 import { SavingsGoalCard } from "./savings-goal-card";
@@ -213,7 +213,7 @@ export function TrackerLayout() {
 
   const { monitors, goals } = useTrackerData();
   const remove = useTrackerStore((s) => s.remove);
-  const categories = useWalletStore((s) => s.categories);
+  const categories = CATEGORIES;
   const add = useTrackerStore((s) => s.add);
   const update = useTrackerStore((s) => s.update);
 
