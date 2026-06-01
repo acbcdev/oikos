@@ -43,6 +43,12 @@
       "skillPath": "skills/engineering/prototype/SKILL.md",
       "computedHash": "aa9d68879fb51af13d47247b5fb73474324e38985ead454e6ea85b64344b7485"
     },
+    "react-hook-form": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "skillPath": "skills/.curated/react-hook-form/SKILL.md",
+      "computedHash": "708cdc15b14a2826d05f1ac92a7d63f496a068cee5b4b5139c09cbcd68ba2409"
+    },
     "seo": {
       "source": "addyosmani/web-quality-skills",
       "sourceType": "github",
