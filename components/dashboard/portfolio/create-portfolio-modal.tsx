@@ -54,7 +54,7 @@ export function CreatePortfolioModal({
         description: portfolio?.description ?? "",
       });
     }
-  }, [open, portfolio, form]);
+  }, [open, portfolio]);
 
   function onSubmit(values: FormValues) {
     if (isEditing) {

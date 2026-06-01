@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BarChart3, Bitcoin, Pencil, Plus, TrendingUp, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import type { AssetSearchResult } from "@/app/api/search/assets/route";
 import { Button } from "@/components/ui/button";
@@ -123,7 +123,7 @@ export function AddPositionModal({
     },
   });
 
-  const watchedType = form.watch("type");
+  const watchedType = useWatch({ control: form.control, name: "type", defaultValue: "stock" });
   const isSearchable = SEARCHABLE_TYPES.includes(watchedType);
 
   useEffect(() => {
@@ -155,7 +155,6 @@ export function AddPositionModal({
     defaultPortfolioId,
     lastUsedPortfolioId,
     portfolios,
-    form,
   ]);
 
   async function handleAssetSelect(asset: AssetSearchResult) {
