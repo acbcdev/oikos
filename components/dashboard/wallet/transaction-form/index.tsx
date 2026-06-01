@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, Plus } from "lucide-react";
 import { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { CATEGORIES } from "@/lib/data/categories";
@@ -100,8 +100,8 @@ export function TransactionForm({
     }
   }, [open]);
 
-  const type = form.watch("type");
-  const fromAccount = form.watch("fromAccount");
+  const type = useWatch({ control: form.control, name: "type", defaultValue: "expense" });
+  const fromAccount = useWatch({ control: form.control, name: "fromAccount", defaultValue: defaultAccountId });
 
   const currencySymbol = useMemo(() => {
     const account = accounts.find((a) => a.id === fromAccount);
@@ -115,6 +115,8 @@ export function TransactionForm({
         .find((p) => p.type === "currency")?.value ?? "$"
     );
   }, [accounts, fromAccount]);
+
+  const { isSubmitting } = form.formState;
 
   const handleSubmit = (data: FormValues) => {
     onSubmit(data);
@@ -147,7 +149,7 @@ export function TransactionForm({
         <Button
           type="submit"
           size="xl"
-          disabled={form.formState.isSubmitting}
+          disabled={isSubmitting}
           className="w-full font-display font-bold tracking-wider uppercase mt-2"
         >
           {transaction ? <Pencil size={18} /> : <Plus size={18} />}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Pencil } from "lucide-react";
@@ -83,9 +83,9 @@ export function EditAccountModal({
         balance: String(account.balance),
       });
     }
-  }, [open, account, form]);
+  }, [open, account]);
 
-  const currency = form.watch("currency");
+  const currency = useWatch({ control: form.control, name: "currency", defaultValue: account.currency });
 
   const currencySymbol =
     new Intl.NumberFormat("en-US", { style: "currency", currency })

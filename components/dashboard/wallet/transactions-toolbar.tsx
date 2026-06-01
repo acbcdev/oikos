@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CATEGORIES } from "@/lib/data/categories";
-import type { Account, Transaction } from "@/lib/data/wallet";
+import type { Account } from "@/lib/data/wallet";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import { cn } from "@/lib/utils";
 import type { TxType } from "../wallet/wallet-layout";
@@ -90,8 +90,7 @@ export function TransactionsToolbar({
     });
   }
   for (const catId of selectedCategories) {
-    const catName =
-      CATEGORIES.find((c) => c.id === catId)?.name ?? catId;
+    const catName = CATEGORIES.find((c) => c.id === catId)?.name ?? catId;
     chips.push({
       key: `cat:${catId}`,
       label: catName,

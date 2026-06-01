@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CreditCard, PiggyBank, TrendingUp } from "lucide-react";
@@ -87,8 +87,8 @@ export function LinkAccountModal({
     },
   });
 
-  const currency = form.watch("currency");
-  const selectedType = form.watch("accountType");
+  const currency = useWatch({ control: form.control, name: "currency", defaultValue: "USD" });
+  const selectedType = useWatch({ control: form.control, name: "accountType", defaultValue: "checking" });
 
   const currencySymbol =
     new Intl.NumberFormat("en-US", { style: "currency", currency })

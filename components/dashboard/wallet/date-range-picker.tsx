@@ -136,8 +136,7 @@ export function DateRangePicker({
   }
 
   function getNavLabel(): string {
-    if (mode === "custom" || mode === "weeks")
-      return Dater.of(viewMonth).fmt();
+    if (mode === "custom" || mode === "weeks") return Dater.of(viewMonth).fmt();
     if (mode === "months") return String(viewYear);
     return `${viewDecadeStart} – ${viewDecadeStart + 9}`;
   }
@@ -162,7 +161,11 @@ export function DateRangePicker({
 
   function handleMonthClick(monthIdx: number) {
     const d = Dater.ofYM(viewYear, monthIdx);
-    onRangeChange(d.monthStart().iso(), d.monthEnd().iso(), `${MONTH_NAMES[monthIdx]} ${viewYear}`);
+    onRangeChange(
+      d.monthStart().iso(),
+      d.monthEnd().iso(),
+      `${MONTH_NAMES[monthIdx]} ${viewYear}`,
+    );
   }
 
   function handleYearClick(year: number) {
