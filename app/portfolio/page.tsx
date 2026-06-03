@@ -1,4 +1,4 @@
-import { PortfolioLayout } from "@/components/dashboard/portfolio/portfolio-layout";
+import { PortfolioLayout } from "@/components/portfolio/portfolio-layout";
 
 export default function PortfolioPage() {
   return <PortfolioLayout />;

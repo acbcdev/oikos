@@ -1,5 +1,5 @@
 import { SidebarInset } from "@/components/ui/sidebar";
-import { TrackerLayout } from "@/components/dashboard/tracker/tracker-layout";
+import { TrackerLayout } from "@/components/tracker/tracker-layout";
 
 export default function TrackerPage() {
   return (

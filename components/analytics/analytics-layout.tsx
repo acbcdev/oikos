@@ -7,32 +7,48 @@ import {
   NetWorthCard,
   ActiveGoalCard,
   BurnRateCard,
-} from "@/components/dashboard/metric-cards";
-import { BurnDistribution } from "@/components/dashboard/burn-distribution";
-import { useWalletStore, useAvailableCurrencies } from "@/lib/store/wallet-store";
+} from "@/components/analytics/metric-cards";
+import { BurnDistribution } from "@/components/analytics/burn-distribution";
+import {
+  useWalletStore,
+  useAvailableCurrencies,
+} from "@/lib/store/wallet-store";
 import { useMetrics } from "@/lib/hooks/use-metrics";
 import {
-  netWorth, worthSparkline, worthChange,
-  burnTotal, todayBurn, burnSparkline,
-  catBreakdown, catSpend,
-  chartData, ytdChange, income, expenses,
-  savingsRate, savingsChange, topCategory, topAmount,
-  bestMonth, bestSaved, runway,
+  netWorth,
+  worthSparkline,
+  worthChange,
+  burnTotal,
+  todayBurn,
+  burnSparkline,
+  catBreakdown,
+  catSpend,
+  chartData,
+  ytdChange,
+  income,
+  expenses,
+  savingsRate,
+  savingsChange,
+  topCategory,
+  topAmount,
+  bestMonth,
+  bestSaved,
+  runway,
 } from "@/lib/hooks/metrics";
-import { TransactionModal } from "@/components/dashboard/wallet/transaction-modal";
-import { TimeframeToggle } from "@/components/dashboard/reports/timeframe-toggle";
-import { NetWorthChart } from "@/components/dashboard/reports/net-worth-chart";
+import { TransactionModal } from "@/components/wallet/transaction-modal";
+import { TimeframeToggle } from "@/components/analytics/reports/timeframe-toggle";
+import { NetWorthChart } from "@/components/analytics/reports/net-worth-chart";
 import {
   SavingsRateCard,
   HighestBurnCard,
   BestSavingMonthCard,
   IncomeVsSpendCard,
   MonthlyRunwayCard,
-} from "@/components/dashboard/reports/report-metrics";
+} from "@/components/analytics/reports/report-metrics";
 import type { Timeframe } from "@/lib/data/reports";
 import type { Transaction } from "@/lib/data/wallet";
 
-export function DashboardLayout() {
+export function AnalyticsLayout() {
   useEffect(() => {
     useWalletStore.persist.rehydrate();
   }, []);
@@ -42,9 +58,12 @@ export function DashboardLayout() {
   const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null);
   const [addTxOpen, setAddTxOpen] = useState(false);
   const [timeframe, setTimeframe] = useState<Timeframe>("YTD");
-  const [lastUsedAccountId, setLastUsedAccountId] = useState<string | null>(null);
+  const [lastUsedAccountId, setLastUsedAccountId] = useState<string | null>(
+    null,
+  );
 
   const accounts = useWalletStore((s) => s.accounts);
+  const transactions = useWalletStore((s) => s.transactions);
   const addTransaction = useWalletStore((s) => s.addTransaction);
   const updateTransaction = useWalletStore((s) => s.updateTransaction);
 
@@ -67,14 +86,37 @@ export function DashboardLayout() {
     ? (selectedCurrency ?? currencies[0] ?? null)
     : null;
 
+  const walletData = { accounts, transactions };
+
   const dash = useMetrics(
-    { netWorth, worthSparkline, worthChange, burnTotal, todayBurn, burnSparkline, catBreakdown, catSpend },
-    { currency: activeCurrency },
+    { data: walletData, currency: activeCurrency },
+    {
+      netWorth,
+      worthSparkline,
+      worthChange,
+      burnTotal,
+      todayBurn,
+      burnSparkline,
+      catBreakdown,
+      catSpend,
+    },
   );
 
   const report = useMetrics(
-    { chartData, ytdChange, income, expenses, savingsRate, savingsChange, topCategory, topAmount, bestMonth, bestSaved, runway },
-    { timeframe },
+    { data: walletData, timeframe },
+    {
+      chartData,
+      ytdChange,
+      income,
+      expenses,
+      savingsRate,
+      savingsChange,
+      topCategory,
+      topAmount,
+      bestMonth,
+      bestSaved,
+      runway,
+    },
   );
 
   const displayCurrency = activeCurrency ?? accounts[0]?.currency ?? "USD";
@@ -111,15 +153,15 @@ export function DashboardLayout() {
               ))}
             </div>
           )}
-          <Button
-            variant="ghost"
-            size="icon-lg"
-            aria-label="Notifications"
-          >
+          <Button variant="ghost" size="icon-lg" aria-label="Notifications">
             <Bell size={24} />
           </Button>
           <TimeframeToggle timeframe={timeframe} setTimeframe={setTimeframe} />
-          <Button size="xl" className="font-display font-bold tracking-wider uppercase px-8" onClick={() => setAddTxOpen(true)}>
+          <Button
+            size="xl"
+            className="font-display font-bold tracking-wider uppercase px-8"
+            onClick={() => setAddTxOpen(true)}
+          >
             <Plus size={16} />
             Add Transaction
           </Button>
@@ -161,13 +203,25 @@ export function DashboardLayout() {
           ytdChange={report.ytdChange}
         />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <SavingsRateCard avgSavingsRate={report.savingsRate} savingsRateChange={report.savingsChange} />
-          <HighestBurnCard highestBurnCategory={report.topCategory} highestBurnAmount={report.topAmount} />
-          <BestSavingMonthCard bestSavingMonth={report.bestMonth} bestSavingAmount={report.bestSaved} />
+          <SavingsRateCard
+            avgSavingsRate={report.savingsRate}
+            savingsRateChange={report.savingsChange}
+          />
+          <HighestBurnCard
+            highestBurnCategory={report.topCategory}
+            highestBurnAmount={report.topAmount}
+          />
+          <BestSavingMonthCard
+            bestSavingMonth={report.bestMonth}
+            bestSavingAmount={report.bestSaved}
+          />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <IncomeVsSpendCard totalIncome={report.income} totalExpenses={report.expenses} />
+            <IncomeVsSpendCard
+              totalIncome={report.income}
+              totalExpenses={report.expenses}
+            />
           </div>
           <MonthlyRunwayCard monthlyRunway={report.runway} />
         </div>

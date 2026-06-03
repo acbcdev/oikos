@@ -1,11 +1,13 @@
 "use client";
 
+import { Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { useMemo } from "react";
-import { Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { useInvestmentStore, usePortfolioMetrics } from "@/lib/store/investment-store";
+import { useInvestmentStore } from "@/lib/store/investment-store";
+import { useMetrics } from "@/lib/hooks/use-metrics";
+import { totalValue, totalGain, totalGainPct, costBasis, realizedGain, realizedValue } from "@/lib/hooks/metrics-portfolio";
 import { fmt, fmtSplit } from "@/lib/utils/currency";
 import { PortfolioCard } from "./portfolio-card";
 
@@ -21,23 +23,43 @@ export function PortfoliosPane({
   onCreatePortfolio,
 }: PortfoliosPaneProps) {
   const portfolios = useInvestmentStore((s) => s.portfolios);
-  const globalMetrics = usePortfolioMetrics();
-  const isGain = globalMetrics.totalGain >= 0;
-
-  // Stable selector — no derived array in selector
   const allPositions = useInvestmentStore((s) => s.positions);
+
+  const displayPositions = useMemo(
+    () => selectedPortfolioId ? allPositions.filter((p) => p.portfolioId === selectedPortfolioId) : allPositions,
+    [allPositions, selectedPortfolioId],
+  );
   const displayCurrency = useMemo(
     () => allPositions.find((p) => !p.soldAt)?.currency ?? "USD",
     [allPositions],
   );
 
-  const { whole, decimal } = fmtSplit(globalMetrics.totalValue, displayCurrency);
+  const metrics = useMetrics(
+    { data: { positions: displayPositions } },
+    { totalValue, totalGain, totalGainPct, totalCostBasis: costBasis, realizedGain, realizedValue },
+  );
+  const { totalValue: globalTotalValue } = useMetrics(
+    { data: { positions: allPositions } },
+    { totalValue },
+  );
+
+  const isGain = metrics.totalGain >= 0;
+  const isRealizedGain = metrics.realizedGain >= 0;
+
+  const selectedPortfolioName = selectedPortfolioId
+    ? (portfolios.find((p) => p.id === selectedPortfolioId)?.name ??
+      "Portfolio")
+    : null;
+
+  const { whole, decimal } = fmtSplit(metrics.totalValue, displayCurrency);
 
   return (
     <section>
       <header className="mb-6">
         <p className="text-xs font-display text-muted-foreground uppercase tracking-[0.2em] font-bold">
-          Portfolio Value
+          {selectedPortfolioName
+            ? `${selectedPortfolioName} · Value`
+            : "Total Portfolio Value"}
         </p>
 
         <div className="flex items-baseline gap-3 mt-2">
@@ -45,7 +67,7 @@ export function PortfoliosPane({
             <span className="text-5xl">{whole}</span>
             <span className="text-3xl text-muted-foreground">{decimal}</span>
           </h2>
-          {globalMetrics.totalCostBasis > 0 && (
+          {metrics.totalCostBasis > 0 && (
             <span
               className={`inline-flex items-center gap-1.5 text-sm font-display font-bold ${
                 isGain ? "text-positive" : "text-negative"
@@ -53,18 +75,39 @@ export function PortfoliosPane({
             >
               {isGain ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
               {isGain ? "+" : ""}
-              {fmt(globalMetrics.totalGain, displayCurrency)}{" "}
+              {fmt(metrics.totalGain, displayCurrency)}{" "}
               <span className="opacity-70 text-xs">
                 ({isGain ? "+" : ""}
-                {globalMetrics.totalGainPct.toFixed(2)}%)
+                {metrics.totalGainPct.toFixed(2)}%)
               </span>
             </span>
           )}
         </div>
 
+        {metrics.realizedGain !== 0 && (
+          <div className="flex items-center gap-4 mt-2">
+            <span className="text-xs font-display text-muted-foreground uppercase tracking-wider font-bold">
+              Realized
+            </span>
+            <span
+              className={`inline-flex items-center gap-1 text-xs font-display font-bold ${
+                isRealizedGain ? "text-positive" : "text-negative"
+              }`}
+            >
+              {isRealizedGain ? "+" : ""}
+              {fmt(metrics.realizedGain, displayCurrency)}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              from {fmt(metrics.realizedValue, displayCurrency)} in sales
+            </span>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mt-3">
           <p className="text-xs font-display text-muted-foreground uppercase tracking-wider font-bold">
-            {portfolios.length} Portfolio{portfolios.length !== 1 ? "s" : ""}
+            {selectedPortfolioId
+              ? `${globalTotalValue > 0 ? `${fmt(globalTotalValue, displayCurrency)} total · ` : ""}${portfolios.length} Portfolio${portfolios.length !== 1 ? "s" : ""}`
+              : `${portfolios.length} Portfolio${portfolios.length !== 1 ? "s" : ""}`}
           </p>
           <Button size="xl" onClick={onCreatePortfolio}>
             <Plus size={16} />
@@ -77,7 +120,10 @@ export function PortfoliosPane({
       <ScrollArea className="w-full rounded-md">
         <div className="flex items-stretch gap-4 pb-4">
           {portfolios.map((portfolio) => (
-            <div key={portfolio.id} className="w-[calc((100%-2*1rem)/3)] shrink-0">
+            <div
+              key={portfolio.id}
+              className="w-[calc((100%-2*1rem)/3)] shrink-0"
+            >
               <PortfolioCard
                 portfolio={portfolio}
                 isSelected={selectedPortfolioId === portfolio.id}

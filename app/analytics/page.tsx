@@ -1,5 +1,5 @@
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { AnalyticsLayout } from "@/components/analytics/analytics-layout";
 
 export default function AnalyticsPage() {
-  return <DashboardLayout />;
+  return <AnalyticsLayout />;
 }

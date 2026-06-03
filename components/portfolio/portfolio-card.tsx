@@ -1,24 +1,25 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import {
-  MoreVertical,
-  Pencil,
-  Trash2,
-  TrendingUp,
-  TrendingDown,
+  BarChart3,
   Bitcoin,
   Building2,
   Landmark,
-  BarChart3,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardAction,
   CardContent,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -27,18 +28,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useInvestmentStore, usePortfolioMetrics } from "@/lib/store/investment-store";
-import { fmt, fmtSplit } from "@/lib/utils/currency";
 import type { AssetType, Portfolio } from "@/lib/data/portfolio";
+import { useInvestmentStore } from "@/lib/store/investment-store";
+import { useMetrics } from "@/lib/hooks/use-metrics";
+import { totalValue, totalGain, totalGainPct, costBasis } from "@/lib/hooks/metrics-portfolio";
+import { cn } from "@/lib/utils";
+import { fmt, fmtSplit } from "@/lib/utils/currency";
 import { CreatePortfolioModal } from "./create-portfolio-modal";
 
-const assetTypeConfig: Record<AssetType, { icon: React.ElementType; label: string; color: string }> = {
+const assetTypeConfig: Record<
+  AssetType,
+  { icon: React.ElementType; label: string; color: string }
+> = {
   stock: { icon: BarChart3, label: "Stock", color: "text-blue-400" },
   etf: { icon: TrendingUp, label: "ETF", color: "text-purple-400" },
   crypto: { icon: Bitcoin, label: "Crypto", color: "text-primary" },
-  "real-estate": { icon: Building2, label: "Real Estate", color: "text-orange-400" },
+  "real-estate": {
+    icon: Building2,
+    label: "Real Estate",
+    color: "text-orange-400",
+  },
   bond: { icon: Landmark, label: "Bond", color: "text-chart-2" },
 };
 
@@ -48,7 +57,11 @@ interface PortfolioCardProps {
   onSelect: () => void;
 }
 
-export function PortfolioCard({ portfolio, isSelected, onSelect }: PortfolioCardProps) {
+export function PortfolioCard({
+  portfolio,
+  isSelected,
+  onSelect,
+}: PortfolioCardProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const removePortfolio = useInvestmentStore((s) => s.removePortfolio);
@@ -57,7 +70,10 @@ export function PortfolioCard({ portfolio, isSelected, onSelect }: PortfolioCard
     () => allPositions.filter((p) => p.portfolioId === portfolio.id && !p.soldAt),
     [allPositions, portfolio.id],
   );
-  const metrics = usePortfolioMetrics(portfolio.id);
+  const metrics = useMetrics(
+    { data: { positions } },
+    { totalValue, totalGain, totalGainPct, totalCostBasis: costBasis },
+  );
 
   const activeTypes = [...new Set(positions.map((p) => p.type))];
   const currency = positions[0]?.currency ?? "USD";
@@ -84,39 +100,41 @@ export function PortfolioCard({ portfolio, isSelected, onSelect }: PortfolioCard
             </CardTitle>
           </div>
           <CardAction>
-            <div onClick={(e) => e.stopPropagation()}>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={<Button variant="ghost" size="icon-sm" />}
-                >
-                  <MoreVertical size={14} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-card border-white/10 min-w-35">
-                  <DropdownMenuItem onClick={() => setEditOpen(true)}>
-                    <Pencil size={14} />
-                    Edit
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                onClick={(e) => e.stopPropagation()}
+                render={<Button variant="ghost" size="icon-sm" />}
+              >
+                <MoreVertical size={14} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="bg-card border-white/10 min-w-35"
+              >
+                <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                  <Pencil size={14} />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {confirmDelete ? (
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => removePortfolio(portfolio.id)}
+                  >
+                    <Trash2 size={14} />
+                    Confirm Delete
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {confirmDelete ? (
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => removePortfolio(portfolio.id)}
-                    >
-                      <Trash2 size={14} />
-                      Confirm Delete
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => setConfirmDelete(true)}
-                    >
-                      <Trash2 size={14} />
-                      Delete
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                ) : (
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => setConfirmDelete(true)}
+                  >
+                    <Trash2 size={14} />
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardAction>
         </CardHeader>
 

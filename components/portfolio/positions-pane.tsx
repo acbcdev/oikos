@@ -12,10 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
-import {
-  useInvestmentStore,
-  usePortfolioMetrics,
-} from "@/lib/store/investment-store";
+import { useInvestmentStore } from "@/lib/store/investment-store";
+import { useMetrics } from "@/lib/hooks/use-metrics";
+import { totalValue, totalGain, totalGainPct, costBasis } from "@/lib/hooks/metrics-portfolio";
 import { fmt } from "@/lib/utils/currency";
 import { PositionRow } from "./position-row";
 import { AddPositionModal } from "./add-position-modal";
@@ -34,11 +33,14 @@ function PortfolioGroup({
   positions: GroupedPosition[];
 }) {
   const [open, setOpen] = useState(true);
-  const metrics = usePortfolioMetrics(portfolioId);
   const allPositions = useInvestmentStore((s) => s.positions);
   const currency =
     allPositions.find((p) => p.portfolioId === portfolioId && !p.soldAt)
       ?.currency ?? "USD";
+  const metrics = useMetrics(
+    { data: { positions } },
+    { totalValue, totalGain, totalGainPct, totalCostBasis: costBasis },
+  );
   const isGain = metrics.totalGain >= 0;
 
   return (
