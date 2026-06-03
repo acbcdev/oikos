@@ -95,7 +95,6 @@ export function ClosePositionModal({
                       value={field.value}
                       onValueChange={field.onChange}
                       onBlur={field.onBlur}
-                      ref={field.ref}
                     />
                   )}
                 />
