@@ -1,11 +1,12 @@
 import { useMemo, useRef } from "react";
-import { useWalletStore } from "@/lib/store/wallet-store";
-import type { Account, Transaction } from "@/lib/data/wallet";
 import type { Timeframe } from "@/lib/data/reports";
+import type { Account, Transaction } from "@/lib/data/wallet";
+import type { Position } from "@/lib/data/portfolio";
 
 export interface MetricData {
-  accounts: Account[];
-  transactions: Transaction[];
+  accounts?: Account[];
+  transactions?: Transaction[];
+  positions?: Position[];
 }
 
 export interface MetricOptions {
@@ -15,34 +16,34 @@ export interface MetricOptions {
 
 type MetricFn<R> = (data: MetricData, options: MetricOptions) => R;
 
-export function useMetrics<T extends Record<string, unknown>>(
-  callbacks: { [K in keyof T]: MetricFn<T[K]> },
-  options: MetricOptions = {}
-): T {
-  const allAccounts = useWalletStore((s) => s.accounts);
-  const allTransactions = useWalletStore((s) => s.transactions);
-  const { currency = null, timeframe } = options;
+interface UseMetricsInput {
+  data: MetricData;
+  currency?: string | null;
+  timeframe?: Timeframe;
+}
 
+export function useMetrics<T extends Record<string, unknown>>(
+  { data: { accounts = [], transactions = [], positions = [] }, currency, timeframe }: UseMetricsInput,
+  callbacks: { [K in keyof T]: MetricFn<T[K]> },
+): T {
   const cbRef = useRef(callbacks);
   cbRef.current = callbacks;
-  const optsRef = useRef(options);
-  optsRef.current = options;
 
   return useMemo(() => {
-    const accounts = currency
-      ? allAccounts.filter((a) => a.currency === currency)
-      : allAccounts;
-    const filteredIds = currency ? new Set(accounts.map((a) => a.id)) : null;
-    const transactions = currency
-      ? allTransactions.filter((t) => filteredIds!.has(t.accountId))
-      : allTransactions;
+    const filteredAccounts = currency
+      ? accounts.filter((a) => a.currency === currency)
+      : accounts;
+    const filteredIds = currency ? new Set(filteredAccounts.map((a) => a.id)) : null;
+    const filteredTransactions = currency
+      ? transactions.filter((t) => filteredIds?.has(t.accountId))
+      : transactions;
 
-    const data: MetricData = { accounts, transactions };
+    const filtered: MetricData = { accounts: filteredAccounts, transactions: filteredTransactions, positions };
+    const opts: MetricOptions = { currency: currency ?? null, timeframe };
     const result = {} as T;
     for (const key in cbRef.current) {
-      result[key] = cbRef.current[key](data, optsRef.current);
+      result[key] = cbRef.current[key](filtered, opts);
     }
     return result;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allAccounts, allTransactions, currency, timeframe]);
+  }, [accounts, transactions, positions, currency, timeframe]);
 }
