@@ -8,13 +8,26 @@ import {
   TrendingUp,
   TrendingDown,
   ChevronDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { computePnL } from "@/lib/data/portfolio";
 import { useInvestmentStore } from "@/lib/store/investment-store";
 import { useMetrics } from "@/lib/hooks/use-metrics";
-import { totalValue, totalGain, totalGainPct, costBasis } from "@/lib/hooks/metrics-portfolio";
+import {
+  totalValue,
+  totalGain,
+  totalGainPct,
+  costBasis,
+} from "@/lib/hooks/metrics-portfolio";
 import { fmt } from "@/lib/utils/currency";
 import { PositionRow } from "./position-row";
 import { AddPositionModal } from "./add-position-modal";
@@ -108,7 +121,7 @@ function PortfolioGroup({
         <ul className="flex flex-col gap-3 px-4 pt-2 pb-4">
           {positions.map((pos) => (
             <li key={pos.id}>
-              <PositionRow position={pos} />
+              <PositionRow position={pos} portfolioValue={metrics.totalValue} />
             </li>
           ))}
         </ul>
@@ -120,6 +133,20 @@ function PortfolioGroup({
 const TABS = ["Current Positions", "Previous Sales"] as const;
 type Tab = (typeof TABS)[number];
 
+const SORTS = {
+  value: {
+    label: "Value",
+    fn: (p: GroupedPosition) => computePnL(p).currentValue,
+  },
+  gain: { label: "Gain", fn: (p: GroupedPosition) => computePnL(p).gain },
+  gainPct: {
+    label: "Gain %",
+    fn: (p: GroupedPosition) => computePnL(p).gainPct,
+  },
+  name: { label: "Name", fn: (p: GroupedPosition) => p.name },
+} as const;
+type SortKey = keyof typeof SORTS;
+
 interface PositionsPaneProps {
   selectedPortfolioId: string | null;
 }
@@ -127,6 +154,7 @@ interface PositionsPaneProps {
 export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
   const [activeTab, setActiveTab] = useState<Tab>("Current Positions");
   const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("value");
   const [modalOpen, setModalOpen] = useState(false);
 
   useHotkeys("n", () => setModalOpen(true), { preventDefault: true });
@@ -154,9 +182,20 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
     });
   }, [allPositions, activeTab, selectedPortfolioId, query]);
 
+  const sortedPositions = useMemo(() => {
+    const { fn } = SORTS[sortKey];
+    return [...filteredPositions].sort((a, b) => {
+      const va = fn(a);
+      const vb = fn(b);
+      if (typeof va === "string" && typeof vb === "string")
+        return va.localeCompare(vb);
+      return (vb as number) - (va as number);
+    });
+  }, [filteredPositions, sortKey]);
+
   const grouped = useMemo(() => {
-    const map = new Map<string, typeof filteredPositions>();
-    for (const pos of filteredPositions) {
+    const map = new Map<string, typeof sortedPositions>();
+    for (const pos of sortedPositions) {
       const list = map.get(pos.portfolioId) ?? [];
       list.push(pos);
       map.set(pos.portfolioId, list);
@@ -177,7 +216,7 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
           return a.createdAt.localeCompare(b.createdAt);
         return a.portfolioIndex - b.portfolioIndex;
       });
-  }, [filteredPositions, portfolios]);
+  }, [sortedPositions, portfolios]);
 
   return (
     <section>
@@ -188,21 +227,29 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 p-1 mb-4 bg-secondary/40 rounded-xl w-fit">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={cn(
-              "px-4 py-2 rounded-lg text-xs font-display font-bold uppercase tracking-wider transition-colors",
-              activeTab === tab
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {tab}
-          </button>
-        ))}
+      <div className="flex items-center gap-1 p-1 mb-4 bg-secondary/15 rounded-xl w-fit">
+        {TABS.map((tab) => {
+          const count = allPositions.filter(
+            (p) =>
+              (tab === "Current Positions" ? !p.soldAt : !!p.soldAt) &&
+              (!selectedPortfolioId || p.portfolioId === selectedPortfolioId),
+          ).length;
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "px-4 py-2 rounded-lg text-xs font-display font-bold  uppercase tracking-wider transition-colors",
+                activeTab === tab
+                  ? "bg-card  text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {tab}
+              <span className="ml-2 tabular-nums opacity-50">{count}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Search + Add button */}
@@ -217,6 +264,26 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
             className="w-full text-sm bg-transparent outline-none font-body text-foreground placeholder:text-muted-foreground"
           />
         </label>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="secondary" size="xl" className="gap-2" />}
+          >
+            <ArrowUpDown size={15} />
+            {SORTS[sortKey].label}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-36">
+            {(Object.keys(SORTS) as SortKey[]).map((key) => (
+              <DropdownMenuItem
+                key={key}
+                onClick={() => setSortKey(key)}
+                className={cn(sortKey === key && "text-primary")}
+              >
+                {SORTS[key].label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <Button onClick={() => setModalOpen(true)} size="xl">
           <Plus size={16} />

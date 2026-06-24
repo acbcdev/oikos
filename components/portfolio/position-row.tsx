@@ -28,22 +28,24 @@ import { computePnL } from "@/lib/data/portfolio";
 import { fmt } from "@/lib/utils/currency";
 import { refreshPositionPrice } from "@/lib/services/prices";
 import type { AssetType, Position } from "@/lib/data/portfolio";
+import { AssetLogo } from "./asset-logo";
 import { AddPositionModal } from "./add-position-modal";
 import { ClosePositionModal } from "./close-position-modal";
 
 const assetTypeConfig: Record<
   AssetType,
-  { icon: React.ElementType; bg: string; text: string }
+  { icon: React.ElementType; bg: string; text: string; bar: string }
 > = {
-  stock: { icon: BarChart3, bg: "bg-blue-500/15", text: "text-blue-400" },
-  etf: { icon: TrendingUp, bg: "bg-purple-500/15", text: "text-purple-400" },
-  crypto: { icon: Bitcoin, bg: "bg-primary/15", text: "text-primary" },
+  stock: { icon: BarChart3, bg: "bg-blue-500/15", text: "text-blue-400", bar: "bg-blue-400" },
+  etf: { icon: TrendingUp, bg: "bg-purple-500/15", text: "text-purple-400", bar: "bg-purple-400" },
+  crypto: { icon: Bitcoin, bg: "bg-primary/15", text: "text-primary", bar: "bg-primary" },
   "real-estate": {
     icon: Building2,
     bg: "bg-orange-500/15",
     text: "text-orange-400",
+    bar: "bg-orange-400",
   },
-  bond: { icon: Landmark, bg: "bg-chart-2/15", text: "text-chart-2" },
+  bond: { icon: Landmark, bg: "bg-chart-2/15", text: "text-chart-2", bar: "bg-chart-2" },
 };
 
 const assetTypeLabel: Record<AssetType, string> = {
@@ -54,7 +56,13 @@ const assetTypeLabel: Record<AssetType, string> = {
   bond: "Bond",
 };
 
-export function PositionRow({ position }: { position: Position }) {
+export function PositionRow({
+  position,
+  portfolioValue,
+}: {
+  position: Position;
+  portfolioValue?: number;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
@@ -63,10 +71,13 @@ export function PositionRow({ position }: { position: Position }) {
   const updatePosition = useInvestmentStore((s) => s.updatePosition);
 
   const cfg = assetTypeConfig[position.type];
-  const Icon = cfg.icon;
   const { gain, gainPct, costBasis, currentValue, isRealized } =
     computePnL(position);
   const isGain = gain >= 0;
+  const weight =
+    !isRealized && portfolioValue && portfolioValue > 0
+      ? (currentValue / portfolioValue) * 100
+      : null;
 
   async function handleRefreshPrice() {
     if (refreshing) return;
@@ -92,24 +103,42 @@ export function PositionRow({ position }: { position: Position }) {
             className="flex items-center flex-1 min-w-0 gap-4 text-left cursor-pointer"
             aria-expanded={expanded}
           >
-            <span
-              className={`size-12 rounded-xl ${cfg.bg} flex items-center justify-center shrink-0`}
-              aria-hidden="true"
-            >
-              <Icon size={20} className={cfg.text} />
-            </span>
+            <AssetLogo
+              type={position.type}
+              ticker={position.ticker}
+              icon={cfg.icon}
+              bg={cfg.bg}
+              text={cfg.text}
+            />
 
-            <hgroup className="flex-1 min-w-0">
+            <hgroup className="min-w-0 max-w-[14rem] sm:max-w-xs">
               <h4 className="text-[15px] font-display font-bold text-foreground truncate">
                 {position.name}
               </h4>
-              <p className="text-xs text-muted-foreground font-display uppercase tracking-wider mt-0.5">
+              <p className="text-xs text-muted-foreground font-display uppercase tracking-wider mt-0.5 truncate">
                 {assetTypeLabel[position.type]}
                 {position.ticker && ` · ${position.ticker}`}
                 {" · "}
                 {position.quantity} units
               </p>
             </hgroup>
+
+            {weight !== null && (
+              <div className="hidden flex-1 min-w-0 max-w-xs flex-col gap-1.5 md:flex">
+                <div className="flex items-center justify-between text-[10px] font-display uppercase tracking-[0.15em] text-muted-foreground">
+                  <span className="opacity-70">Weight</span>
+                  <span className="tabular-nums text-foreground/80">
+                    {weight.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="h-1 w-full overflow-hidden rounded-full bg-secondary/50">
+                  <div
+                    className={`h-full rounded-full ${cfg.bar}`}
+                    style={{ width: `${Math.min(weight, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </button>
 
           <output className="text-right shrink-0">
@@ -122,7 +151,7 @@ export function PositionRow({ position }: { position: Position }) {
               }`}
             >
               {isGain ? "+" : ""}
-              {gain.toFixed(2)} ({isGain ? "+" : ""}
+              {fmt(gain, position.currency)} ({isGain ? "+" : ""}
               {gainPct.toFixed(2)}%)
             </p>
           </output>
@@ -225,6 +254,17 @@ export function PositionRow({ position }: { position: Position }) {
                   {fmt(position.buyPrice, position.currency)}
                 </dd>
               </div>
+
+              {weight !== null && (
+                <div>
+                  <dt className="text-[10px] font-display uppercase tracking-[0.2em] text-muted-foreground mb-1">
+                    Portfolio Weight
+                  </dt>
+                  <dd className="text-sm font-bold font-display text-foreground tabular-nums">
+                    {weight.toFixed(1)}%
+                  </dd>
+                </div>
+              )}
 
               <div>
                 <dt className="text-[10px] font-display uppercase tracking-[0.2em] text-muted-foreground mb-1">
