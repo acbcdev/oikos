@@ -15,5 +15,8 @@
     "improve-codebase-architecture": "name-only",
     "prototype": "name-only",
     "grill-me": "name-only"
-  }
+  },
+  "disabledMcpjsonServers": [
+    "shadcn"
+  ]
 }
