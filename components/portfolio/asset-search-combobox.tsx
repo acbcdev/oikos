@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { fmt } from "@/lib/utils/currency";
 import type { AssetSearchResult } from "@/app/api/search/assets/route";
+import { AssetLogo } from "./asset-logo";
 
 const typeConfig = {
   stock: {
@@ -107,8 +108,8 @@ export function AssetSearchCombobox({ onSelect }: AssetSearchComboboxProps) {
 
       {(loading || hasSearched) && (
         <ComboboxContent
-          align="center"
-          className="bg-[rgba(14,20,34,0.98)] min-w-(--anchor-width)!"
+          align="start"
+          className="bg-[rgba(14,20,34,0.98)] w-(--anchor-width)! min-w-(--anchor-width)! max-w-none!"
         >
           <ComboboxList>
             {hasSearched && results.length === 0 && (
@@ -121,21 +122,19 @@ export function AssetSearchCombobox({ onSelect }: AssetSearchComboboxProps) {
 
             {results.map((asset) => {
               const cfg = typeConfig[asset.type];
-              const Icon = cfg.icon;
               return (
                 <ComboboxItem
                   key={`${asset.ticker}-${asset.type}`}
                   value={asset.ticker}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer"
                 >
-                  <span
-                    className={cn(
-                      "size-9 rounded-lg flex items-center justify-center shrink-0",
-                      cfg.bg,
-                    )}
-                  >
-                    <Icon size={15} className={cfg.color} />
-                  </span>
+                  <AssetLogo
+                    type={asset.type}
+                    ticker={asset.ticker}
+                    icon={cfg.icon}
+                    bg={cfg.bg}
+                    text={cfg.color}
+                  />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">

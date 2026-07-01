@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BarChart3, Bitcoin, Pencil, Plus, TrendingUp, X } from "lucide-react";
+import { BarChart3, Bitcoin, Pencil, Plus, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -31,6 +31,8 @@ import type { AssetType, Position } from "@/lib/data/portfolio";
 import { fetchCryptoPrice, fetchStockPrice } from "@/lib/services/prices";
 import { useInvestmentStore } from "@/lib/store/investment-store";
 import { cn } from "@/lib/utils";
+import { fmt } from "@/lib/utils/currency";
+import { AssetLogo } from "./asset-logo";
 import { AssetSearchCombobox } from "./asset-search-combobox";
 
 const assetTypeConfig = {
@@ -168,6 +170,9 @@ export function AddPositionModal({
       form.setValue("buyPrice", String(asset.price), { shouldValidate: true });
       setFetchedCurrentPrice(asset.price);
     }
+
+    // Move focus forward so Enter continues the form, not the search
+    form.setFocus("quantity");
 
     // Then fetch a fresher quote in the background
     try {
@@ -316,56 +321,68 @@ export function AddPositionModal({
                 <FormLabel className="text-xs font-bold tracking-widest uppercase font-display text-muted-foreground">
                   Search Asset
                 </FormLabel>
-                <AssetSearchCombobox
-                  key={comboboxKey}
-                  onSelect={handleAssetSelect}
-                />
 
-                {/* Selected asset preview row */}
-                {selectedAsset &&
+                {selectedAsset ? (
                   (() => {
                     const cfg =
                       assetTypeConfig[
                         selectedAsset.type as keyof typeof assetTypeConfig
                       ];
-                    const Icon = cfg.icon;
                     return (
-                      <div className="flex items-center gap-3 mt-2 px-3 py-2.5 rounded-xl bg-secondary/40 border border-white/5">
-                        <span
-                          className={cn(
-                            "size-8 rounded-lg flex items-center justify-center shrink-0",
-                            cfg.bg,
-                          )}
-                        >
-                          <Icon size={14} className={cfg.color} />
-                        </span>
-                        <div className="flex items-center flex-1 min-w-0 gap-2">
-                          <span className="text-sm font-bold font-display text-foreground">
+                      <div className="flex items-center gap-3 px-3 py-3 border rounded-xl bg-secondary/40 border-neon/30 ring-1 ring-neon/10">
+                        <AssetLogo
+                          type={selectedAsset.type}
+                          ticker={selectedAsset.ticker}
+                          icon={cfg.icon}
+                          bg={cfg.bg}
+                          text={cfg.color}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold truncate font-display text-foreground">
+                              {selectedAsset.name}
+                            </span>
+                            <span
+                              className={cn(
+                                "text-[10px] font-display font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0",
+                                cfg.bg,
+                                cfg.color,
+                              )}
+                            >
+                              {cfg.label}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground font-body mt-0.5">
                             {selectedAsset.ticker}
-                          </span>
-                          <span className="text-xs truncate text-muted-foreground">
-                            {selectedAsset.name}
-                          </span>
-                          <span
-                            className={cn(
-                              "text-[10px] font-display font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0",
-                              cfg.bg,
-                              cfg.color,
+                            {selectedAsset.exchange && (
+                              <span className="opacity-60">
+                                {" "}
+                                · {selectedAsset.exchange}
+                              </span>
                             )}
-                          >
-                            {cfg.label}
-                          </span>
+                          </p>
                         </div>
+                        {fetchedCurrentPrice !== null && (
+                          <span className="text-sm font-bold font-display text-foreground shrink-0">
+                            {fmt(fetchedCurrentPrice)}
+                          </span>
+                        )}
                         <button
                           type="button"
                           onClick={clearSelection}
-                          className="transition-colors text-muted-foreground hover:text-foreground shrink-0"
+                          className="text-[11px] font-display font-bold uppercase tracking-wider text-muted-foreground hover:text-neon transition-colors shrink-0 px-1.5"
                         >
-                          <X size={14} />
+                          Change
                         </button>
                       </div>
                     );
-                  })()}
+                  })()
+                ) : (
+                  <AssetSearchCombobox
+                    key={comboboxKey}
+                    onSelect={handleAssetSelect}
+                  />
+                )}
                 <FormMessage className="text-xs text-negative" />
               </FormItem>
             )}
