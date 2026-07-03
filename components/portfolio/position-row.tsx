@@ -107,6 +107,7 @@ export function PositionRow({
       <Card className="rounded-2xl  py-0 ring-0 bg-linear-to-br from-[rgba(28,37,59,0.4)] to-[rgba(19,26,42,0.6)]  ">
         <div className="flex items-center gap-4 px-5 py-4">
           <button
+            type="button"
             onClick={() => setExpanded(!expanded)}
             className="flex items-center flex-1 min-w-0 gap-4 text-left cursor-pointer"
             aria-expanded={expanded}

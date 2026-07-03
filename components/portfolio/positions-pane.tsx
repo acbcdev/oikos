@@ -66,6 +66,7 @@ function PortfolioGroup({
     <div className="rounded-2xl bg-linear-to-br from-[rgba(28,37,59,0.35)] to-[rgba(19,26,42,0.5)] border border-white/5 overflow-hidden">
       {/* Header */}
       <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex items-center justify-between w-full px-5 py-4 transition-colors cursor-pointer hover:bg-white/3"
       >
@@ -258,6 +259,7 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
           return (
             <button
               key={tab}
+              type="button"
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "px-4 py-2 rounded-lg text-xs font-display font-bold  uppercase tracking-wider transition-colors",

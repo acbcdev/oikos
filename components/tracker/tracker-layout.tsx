@@ -132,6 +132,7 @@ export function TrackerLayout() {
             )}
           />
           <button
+            type="button"
             onClick={() => setView("grid")}
             className={cn(
               "relative z-10 flex size-7 items-center justify-center rounded-full transition-colors duration-150",
@@ -143,6 +144,7 @@ export function TrackerLayout() {
             <LayoutGrid size={12} />
           </button>
           <button
+            type="button"
             onClick={() => setView("list")}
             className={cn(
               "relative z-10 flex size-7 items-center justify-center rounded-full transition-colors duration-150",
