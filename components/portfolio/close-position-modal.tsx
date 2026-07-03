@@ -62,10 +62,14 @@ export function ClosePositionModal({
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="p-6 pb-5">
             <div className="flex items-center gap-3 mb-5">
-              <span className={`size-9 rounded-xl flex items-center justify-center shrink-0 ${isGain ? "bg-positive/10" : "bg-negative/10"}`}>
-                {isGain
-                  ? <TrendingUp size={16} className="text-positive" />
-                  : <TrendingDown size={16} className="text-negative" />}
+              <span
+                className={`size-9 rounded-xl flex items-center justify-center shrink-0 ${isGain ? "bg-positive/10" : "bg-negative/10"}`}
+              >
+                {isGain ? (
+                  <TrendingUp size={16} className="text-positive" />
+                ) : (
+                  <TrendingDown size={16} className="text-negative" />
+                )}
               </span>
               <div>
                 <DialogTitle className="text-base font-display font-bold text-foreground">
@@ -126,8 +130,12 @@ export function ClosePositionModal({
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs font-display">
-                  <span className="text-muted-foreground">Realized P&amp;L</span>
-                  <span className={`font-bold tabular-nums ${isGain ? "text-positive" : "text-negative"}`}>
+                  <span className="text-muted-foreground">
+                    Realized P&amp;L
+                  </span>
+                  <span
+                    className={`font-bold tabular-nums ${isGain ? "text-positive" : "text-negative"}`}
+                  >
                     {isGain ? "+" : ""}
                     {fmt(gain, position.currency)}
                   </span>
@@ -151,9 +159,7 @@ export function ClosePositionModal({
               className={`flex-1 ${isGain ? "bg-positive text-black hover:bg-positive/90" : ""}`}
               disabled={!sellPrice || !sellDate}
             >
-              {isGain
-                ? <TrendingUp size={14} />
-                : <TrendingDown size={14} />}
+              {isGain ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
               Confirm Sale
             </Button>
           </div>

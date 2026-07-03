@@ -79,14 +79,9 @@ export function AccountCard({
           </div>
           <CardAction>
             <div onClick={(e) => e.stopPropagation()}>
-            <DropdownMenu>
+              <DropdownMenu>
                 <DropdownMenuTrigger
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                    />
-                  }
+                  render={<Button variant="ghost" size="icon-sm" />}
                 >
                   <MoreVertical size={14} />
                 </DropdownMenuTrigger>
@@ -107,7 +102,7 @@ export function AccountCard({
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-            </DropdownMenu>
+              </DropdownMenu>
             </div>
           </CardAction>
         </CardHeader>
@@ -117,7 +112,9 @@ export function AccountCard({
             <data value={account.balance}>
               <span className="text-3xl">{whole}</span>
               <span className="text-lg text-muted-foreground">{decimal}</span>
-              <span className="text-xs font-display font-bold text-muted-foreground/60 uppercase tracking-widest ml-2">{account.currency}</span>
+              <span className="text-xs font-display font-bold text-muted-foreground/60 uppercase tracking-widest ml-2">
+                {account.currency}
+              </span>
             </data>
           </p>
         </CardContent>

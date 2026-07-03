@@ -3,7 +3,10 @@ import { Space_Grotesk, Outfit } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shell/app-sidebar";
-import { SidebarOpenTrigger, ContentPadding } from "@/components/shell/sidebar-open-trigger";
+import {
+  SidebarOpenTrigger,
+  ContentPadding,
+} from "@/components/shell/sidebar-open-trigger";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 

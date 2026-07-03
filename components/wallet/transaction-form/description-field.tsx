@@ -11,7 +11,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { FormValues } from "./schema";
 
-export function DescriptionField({ control }: { control: Control<FormValues> }) {
+export function DescriptionField({
+  control,
+}: {
+  control: Control<FormValues>;
+}) {
   return (
     <FormField
       control={control}

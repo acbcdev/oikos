@@ -58,8 +58,7 @@ export function AccountSelect({
                       <span className="flex flex-col">
                         <span>{acc.name}</span>
                         <span className="text-xs text-muted-foreground capitalize">
-                          {acc.type} ·{" "}
-                          {fmt(acc.balance, acc.currency)}
+                          {acc.type} · {fmt(acc.balance, acc.currency)}
                         </span>
                       </span>
                     </SelectItem>

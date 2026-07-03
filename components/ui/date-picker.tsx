@@ -2,7 +2,11 @@
 
 import * as React from "react";
 import { CalendarIcon } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import type { DayPicker } from "react-day-picker";
@@ -45,7 +49,8 @@ export function DatePicker({
   showOutsideDays,
   numberOfMonths,
 }: DatePickerProps) {
-  const effectiveMaxDate = maxDate === undefined ? new Date() : maxDate ?? null;
+  const effectiveMaxDate =
+    maxDate === undefined ? new Date() : (maxDate ?? null);
   const [open, setOpen] = React.useState(false);
 
   const selected = value ? new Date(value + "T00:00:00") : undefined;
@@ -80,7 +85,9 @@ export function DatePicker({
         }
       >
         <CalendarIcon size={15} className="text-muted-foreground shrink-0" />
-        <span className={formatted ? "text-foreground" : "text-muted-foreground"}>
+        <span
+          className={formatted ? "text-foreground" : "text-muted-foreground"}
+        >
           {formatted ?? placeholder}
         </span>
       </PopoverTrigger>

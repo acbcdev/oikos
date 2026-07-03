@@ -47,19 +47,19 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
               {navItems.map(({ icon: Icon, label, href }) => {
-                    const isActive =
-                      pathname === href ||
-                      (href !== "/" && pathname.startsWith(href));
+                const isActive =
+                  pathname === href ||
+                  (href !== "/" && pathname.startsWith(href));
 
-                    return (
-                      <SidebarMenuItem key={label} className="relative">
-                        {isActive && (
-                          <span className="absolute -left-0.1 top-1/2 -translate-y-1/2 w-1 h-5 z-20 bg-primary rounded-full" />
-                        )}
-                        <SidebarMenuButton
-                          render={<Link href={href} />}
-                          isActive={isActive}
-                          className={`
+                return (
+                  <SidebarMenuItem key={label} className="relative">
+                    {isActive && (
+                      <span className="absolute -left-0.1 top-1/2 -translate-y-1/2 w-1 h-5 z-20 bg-primary rounded-full" />
+                    )}
+                    <SidebarMenuButton
+                      render={<Link href={href} />}
+                      isActive={isActive}
+                      className={`
                             flex items-center gap-3 px-6 py-4 rounded-full h-auto transition-all group relative
                             ${
                               isActive
@@ -67,18 +67,18 @@ export function AppSidebar() {
                                 : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                             }
                           `}
-                        >
-                          <Icon
-                            size={22}
-                            className={`transition-transform group-hover:scale-110 shrink-0 ${isActive ? "text-primary" : ""}`}
-                          />
-                          <span className="font-display text-sm tracking-wider uppercase font-bold">
-                            {label}
-                          </span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
+                    >
+                      <Icon
+                        size={22}
+                        className={`transition-transform group-hover:scale-110 shrink-0 ${isActive ? "text-primary" : ""}`}
+                      />
+                      <span className="font-display text-sm tracking-wider uppercase font-bold">
+                        {label}
+                      </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

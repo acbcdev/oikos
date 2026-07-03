@@ -54,19 +54,19 @@ export function WalletLayout() {
 
   const toggleAccount = useCallback((id: string) => {
     setSelectedAccountIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   }, []);
 
   const toggleCategory = useCallback((cat: string) => {
     setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((x) => x !== cat) : [...prev, cat]
+      prev.includes(cat) ? prev.filter((x) => x !== cat) : [...prev, cat],
     );
   }, []);
 
   const toggleType = useCallback((type: TxType) => {
     setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((x) => x !== type) : [...prev, type]
+      prev.includes(type) ? prev.filter((x) => x !== type) : [...prev, type],
     );
   }, []);
 
@@ -76,7 +76,7 @@ export function WalletLayout() {
       setDateTo(to);
       setPresetLabel(label ?? null);
     },
-    []
+    [],
   );
 
   const clearFilters = useCallback(() => {
@@ -105,7 +105,11 @@ export function WalletLayout() {
       {hasAccounts ? (
         <>
           <div className="sticky top-0 z-20 bg-background pb-4">
-            <AccountsPane onAddAccount={() => setLinkModalOpen(true)} selectedAccountIds={selectedAccountIds} toggleAccount={toggleAccount} />
+            <AccountsPane
+              onAddAccount={() => setLinkModalOpen(true)}
+              selectedAccountIds={selectedAccountIds}
+              toggleAccount={toggleAccount}
+            />
             <TransactionsToolbar
               query={query}
               setQuery={setQuery}

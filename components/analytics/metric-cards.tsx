@@ -49,7 +49,12 @@ interface NetWorthCardProps {
   displayCurrency: string;
 }
 
-export function NetWorthCard({ totalNetWorth, netWorthSparkline, netWorthChangePct, displayCurrency }: NetWorthCardProps) {
+export function NetWorthCard({
+  totalNetWorth,
+  netWorthSparkline,
+  netWorthChangePct,
+  displayCurrency,
+}: NetWorthCardProps) {
   useEffect(() => {
     useWalletStore.persist.rehydrate();
   }, []);
@@ -78,8 +83,16 @@ export function NetWorthCard({ totalNetWorth, netWorthSparkline, netWorthChangeP
           >
             <defs>
               <linearGradient id="netWorthGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-positive)" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="var(--color-positive)" stopOpacity={0} />
+                <stop
+                  offset="5%"
+                  stopColor="var(--color-positive)"
+                  stopOpacity={0.4}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--color-positive)"
+                  stopOpacity={0}
+                />
               </linearGradient>
             </defs>
             <Area
@@ -134,10 +147,11 @@ export function ActiveGoalCard() {
 
   const goals = useTrackerStore((s) => s.goals);
 
-  const goal = goals.reduce<typeof goals[number] | null>((worst, g) => {
+  const goal = goals.reduce<(typeof goals)[number] | null>((worst, g) => {
     const pct = g.targetAmount > 0 ? g.currentAmount / g.targetAmount : 1;
     if (!worst) return g;
-    const worstPct = worst.targetAmount > 0 ? worst.currentAmount / worst.targetAmount : 1;
+    const worstPct =
+      worst.targetAmount > 0 ? worst.currentAmount / worst.targetAmount : 1;
     return pct < worstPct ? g : worst;
   }, null);
 
@@ -151,7 +165,9 @@ export function ActiveGoalCard() {
     );
   }
 
-  const percent = Math.round(goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0);
+  const percent = Math.round(
+    goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0,
+  );
   const remaining = goal.targetAmount - goal.currentAmount;
 
   return (
@@ -188,18 +204,25 @@ export function ActiveGoalCard() {
             <CalendarDays size={12} className="text-primary" />
             <span className="text-muted-foreground font-body text-[10px] uppercase tracking-wide">
               {goal.deadline
-                ? new Date(goal.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                ? new Date(goal.deadline).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
                 : "No deadline"}
             </span>
           </div>
-          <span className="text-primary font-display font-bold text-base">{percent}%</span>
+          <span className="text-primary font-display font-bold text-base">
+            {percent}%
+          </span>
         </div>
         <div className="h-2 w-full rounded-full overflow-hidden bg-white/5">
           <div
             className="h-full rounded-full relative transition-all duration-1000 ease-out"
             style={{
               width: `${Math.min(percent, 100)}%`,
-              background: "linear-gradient(90deg, var(--color-primary) 0%, #e8ff4d 100%)",
+              background:
+                "linear-gradient(90deg, var(--color-primary) 0%, #e8ff4d 100%)",
               boxShadow: "0 0 12px rgba(212,255,0,0.4)",
             }}
           />
@@ -234,7 +257,12 @@ interface BurnRateCardProps {
   displayCurrency: string;
 }
 
-export function BurnRateCard({ burnTotal, todayBurn, burnSparkline, displayCurrency }: BurnRateCardProps) {
+export function BurnRateCard({
+  burnTotal,
+  todayBurn,
+  burnSparkline,
+  displayCurrency,
+}: BurnRateCardProps) {
   const { monitors } = useTrackerData();
   const { whole, decimal } = fmtSplit(burnTotal, displayCurrency);
 
@@ -292,8 +320,16 @@ export function BurnRateCard({ burnTotal, todayBurn, burnSparkline, displayCurre
           >
             <defs>
               <linearGradient id="burnGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-destructive)" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="var(--color-destructive)" stopOpacity={0} />
+                <stop
+                  offset="5%"
+                  stopColor="var(--color-destructive)"
+                  stopOpacity={0.3}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--color-destructive)"
+                  stopOpacity={0}
+                />
               </linearGradient>
             </defs>
             <Area

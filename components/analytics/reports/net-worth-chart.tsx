@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Bar,
-  BarChart,
-  XAxis,
-  YAxis,
-  Cell,
-  ReferenceLine,
-} from "recharts";
+import { Bar, BarChart, XAxis, YAxis, Cell, ReferenceLine } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -26,7 +19,13 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: MonthlyNetWorth }> }) {
+function CustomTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: MonthlyNetWorth }>;
+}) {
   if (!active || !payload?.length) return null;
   const data = payload[0].payload;
   if (data.isProjected) return null;
@@ -46,8 +45,11 @@ interface NetWorthChartProps {
   ytdChange: number;
 }
 
-export function NetWorthChart({ chartData, totalNetWorth, ytdChange }: NetWorthChartProps) {
-
+export function NetWorthChart({
+  chartData,
+  totalNetWorth,
+  ytdChange,
+}: NetWorthChartProps) {
   const hasData = chartData.some((d) => !d.isProjected);
 
   return (
@@ -64,7 +66,8 @@ export function NetWorthChart({ chartData, totalNetWorth, ytdChange }: NetWorthC
         </div>
         <Badge className="px-5 py-2 rounded-full text-xs font-display font-bold tracking-wider border-0 bg-positive/10 text-positive border-positive/20 gap-1">
           <ArrowUpRight size={14} />
-          {ytdChange >= 0 ? "+" : ""}{ytdChange}% YTD
+          {ytdChange >= 0 ? "+" : ""}
+          {ytdChange}% YTD
         </Badge>
       </div>
 
@@ -72,77 +75,81 @@ export function NetWorthChart({ chartData, totalNetWorth, ytdChange }: NetWorthC
       <div className="flex-1 mt-auto pt-8 relative z-10">
         {!hasData ? (
           <div className="w-full min-h-[280px] flex items-center justify-center">
-            <p className="text-muted-foreground text-sm font-display">No data for this period</p>
+            <p className="text-muted-foreground text-sm font-display">
+              No data for this period
+            </p>
           </div>
         ) : (
-        <ChartContainer config={chartConfig} className="w-full h-full min-h-[280px]">
-          <BarChart
-            data={chartData}
-            margin={{ top: 40, right: 8, left: 8, bottom: 0 }}
-            barCategoryGap="16%"
+          <ChartContainer
+            config={chartConfig}
+            className="w-full h-full min-h-[280px]"
           >
-            <XAxis
-              dataKey="month"
-              axisLine={false}
-              tickLine={false}
-              tick={{
-                fill: "var(--color-muted-foreground)",
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: "0.1em",
-              }}
-              dy={12}
-            />
-            <YAxis hide />
-            {[0.25, 0.5, 0.75].map((y) => (
-              <ReferenceLine
-                key={y}
-                y={100000 + y * 50000}
-                stroke="rgba(255,255,255,0.05)"
-                strokeDasharray="0"
-              />
-            ))}
-            <ChartTooltip
-              content={<CustomTooltip />}
-              cursor={false}
-            />
-            <Bar
-              dataKey="value"
-              radius={[8, 8, 0, 0]}
-              isAnimationActive={true}
-              animationDuration={800}
-              animationEasing="ease-out"
+            <BarChart
+              data={chartData}
+              margin={{ top: 40, right: 8, left: 8, bottom: 0 }}
+              barCategoryGap="16%"
             >
-              {chartData.map((entry) => (
-                <Cell
-                  key={entry.month}
-                  fill={
-                    entry.isCurrent
-                      ? "var(--color-primary)"
-                      : entry.isProjected
-                        ? "transparent"
-                        : "var(--color-accent)"
-                  }
-                  stroke={
-                    entry.isProjected
-                      ? "rgba(255,255,255,0.1)"
-                      : entry.isCurrent
-                        ? "rgba(212,255,0,0.5)"
-                        : "rgba(255,255,255,0.05)"
-                  }
-                  strokeWidth={entry.isProjected ? 2 : 1}
-                  strokeDasharray={entry.isProjected ? "6 4" : "0"}
-                  opacity={entry.isProjected ? 0.4 : 1}
-                  style={
-                    entry.isCurrent
-                      ? { filter: "drop-shadow(0 0 12px rgba(212,255,0,0.3))" }
-                      : undefined
-                  }
+              <XAxis
+                dataKey="month"
+                axisLine={false}
+                tickLine={false}
+                tick={{
+                  fill: "var(--color-muted-foreground)",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                }}
+                dy={12}
+              />
+              <YAxis hide />
+              {[0.25, 0.5, 0.75].map((y) => (
+                <ReferenceLine
+                  key={y}
+                  y={100000 + y * 50000}
+                  stroke="rgba(255,255,255,0.05)"
+                  strokeDasharray="0"
                 />
               ))}
-            </Bar>
-          </BarChart>
-        </ChartContainer>
+              <ChartTooltip content={<CustomTooltip />} cursor={false} />
+              <Bar
+                dataKey="value"
+                radius={[8, 8, 0, 0]}
+                isAnimationActive={true}
+                animationDuration={800}
+                animationEasing="ease-out"
+              >
+                {chartData.map((entry) => (
+                  <Cell
+                    key={entry.month}
+                    fill={
+                      entry.isCurrent
+                        ? "var(--color-primary)"
+                        : entry.isProjected
+                          ? "transparent"
+                          : "var(--color-accent)"
+                    }
+                    stroke={
+                      entry.isProjected
+                        ? "rgba(255,255,255,0.1)"
+                        : entry.isCurrent
+                          ? "rgba(212,255,0,0.5)"
+                          : "rgba(255,255,255,0.05)"
+                    }
+                    strokeWidth={entry.isProjected ? 2 : 1}
+                    strokeDasharray={entry.isProjected ? "6 4" : "0"}
+                    opacity={entry.isProjected ? 0.4 : 1}
+                    style={
+                      entry.isCurrent
+                        ? {
+                            filter: "drop-shadow(0 0 12px rgba(212,255,0,0.3))",
+                          }
+                        : undefined
+                    }
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ChartContainer>
         )}
       </div>
 

@@ -36,7 +36,11 @@ const CATEGORY_ICON: Record<string, React.ElementType> = {
 };
 
 const STATUS_CONFIG = {
-  "on-track": { dot: "bg-emerald-400", label: "On Track", text: "text-emerald-400" },
+  "on-track": {
+    dot: "bg-emerald-400",
+    label: "On Track",
+    text: "text-emerald-400",
+  },
   "at-risk": { dot: "bg-amber-400", label: "At Risk", text: "text-amber-400" },
   over: { dot: "bg-destructive", label: "Over", text: "text-destructive" },
 };
@@ -47,7 +51,11 @@ interface SpendMonitorCardProps {
   onDelete?: () => void;
 }
 
-export function SpendMonitorCard({ monitor, onEdit, onDelete }: SpendMonitorCardProps) {
+export function SpendMonitorCard({
+  monitor,
+  onEdit,
+  onDelete,
+}: SpendMonitorCardProps) {
   const Icon = CATEGORY_ICON[monitor.categoryId] ?? Infinity;
   const s = STATUS_CONFIG[monitor.status];
   const clampedPct = Math.min(monitor.pct, 100);
@@ -74,7 +82,11 @@ export function SpendMonitorCard({ monitor, onEdit, onDelete }: SpendMonitorCard
           >
             <Icon
               size={16}
-              className={monitor.status === "over" ? "text-destructive" : "text-foreground/70"}
+              className={
+                monitor.status === "over"
+                  ? "text-destructive"
+                  : "text-foreground/70"
+              }
             />
           </span>
           <div>
@@ -90,7 +102,12 @@ export function SpendMonitorCard({ monitor, onEdit, onDelete }: SpendMonitorCard
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <span className={cn("size-1.5 rounded-full", s.dot)} />
-            <span className={cn("text-[10px] font-semibold uppercase tracking-wider", s.text)}>
+            <span
+              className={cn(
+                "text-[10px] font-semibold uppercase tracking-wider",
+                s.text,
+              )}
+            >
               {s.label}
             </span>
           </div>
@@ -113,7 +130,10 @@ export function SpendMonitorCard({ monitor, onEdit, onDelete }: SpendMonitorCard
                 Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem
+                onClick={onDelete}
+                className="text-destructive focus:text-destructive"
+              >
                 <Trash2 size={12} />
                 Delete
               </DropdownMenuItem>
@@ -134,7 +154,9 @@ export function SpendMonitorCard({ monitor, onEdit, onDelete }: SpendMonitorCard
         </span>
         <span className="text-sm text-muted-foreground">
           / {fmt(monitor.limit, monitor.currency)}{" "}
-          <span className="text-[10px] uppercase tracking-wider">{monitor.currency}</span>
+          <span className="text-[10px] uppercase tracking-wider">
+            {monitor.currency}
+          </span>
         </span>
       </div>
 
@@ -181,7 +203,9 @@ export function SpendMonitorCard({ monitor, onEdit, onDelete }: SpendMonitorCard
               <>{fmt(monitor.remaining, monitor.currency)} left</>
             )}
           </span>
-          <span className="text-[11px] text-muted-foreground">{Math.round(clampedPct)}%</span>
+          <span className="text-[11px] text-muted-foreground">
+            {Math.round(clampedPct)}%
+          </span>
         </div>
       </div>
     </div>

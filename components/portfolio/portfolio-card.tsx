@@ -31,7 +31,12 @@ import {
 import type { AssetType, Portfolio } from "@/lib/data/portfolio";
 import { useInvestmentStore } from "@/lib/store/investment-store";
 import { useMetrics } from "@/lib/hooks/use-metrics";
-import { totalValue, totalGain, totalGainPct, costBasis } from "@/lib/hooks/metrics-portfolio";
+import {
+  totalValue,
+  totalGain,
+  totalGainPct,
+  costBasis,
+} from "@/lib/hooks/metrics-portfolio";
 import { cn } from "@/lib/utils";
 import { fmt, fmtSplit } from "@/lib/utils/currency";
 import { CreatePortfolioModal } from "./create-portfolio-modal";
@@ -67,7 +72,8 @@ export function PortfolioCard({
   const removePortfolio = useInvestmentStore((s) => s.removePortfolio);
   const allPositions = useInvestmentStore((s) => s.positions);
   const positions = useMemo(
-    () => allPositions.filter((p) => p.portfolioId === portfolio.id && !p.soldAt),
+    () =>
+      allPositions.filter((p) => p.portfolioId === portfolio.id && !p.soldAt),
     [allPositions, portfolio.id],
   );
   const metrics = useMetrics(

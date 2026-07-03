@@ -73,6 +73,7 @@ function CheckoutForm() {
 ```
 
 **Rule of thumb:**
+
 - Want the field greyed out but still submitted/validated → use the HTML `disabled` attribute directly on the input
 - Want the field excluded from submission and validation → use `register('name', { disabled: true })`
 

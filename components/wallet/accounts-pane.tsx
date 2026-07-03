@@ -33,7 +33,11 @@ interface AccountsPaneProps {
   toggleAccount: (id: string) => void;
 }
 
-export function AccountsPane({ onAddAccount, selectedAccountIds, toggleAccount }: AccountsPaneProps) {
+export function AccountsPane({
+  onAddAccount,
+  selectedAccountIds,
+  toggleAccount,
+}: AccountsPaneProps) {
   const accounts = useWalletStore((s) => s.accounts);
   const removeAccount = useWalletStore((s) => s.removeAccount);
   const [deleteId, setDeleteId] = useState<string | null>(null);

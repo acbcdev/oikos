@@ -40,9 +40,17 @@ export function realizedValue({ positions = [] }: MetricData): number {
     .reduce((s, p) => s + computePnL(p).currentValue, 0);
 }
 
-export function byType({ positions = [] }: MetricData): Record<AssetType, { value: number; pct: number }> {
+export function byType({
+  positions = [],
+}: MetricData): Record<AssetType, { value: number; pct: number }> {
   const open = positions.filter((p) => !p.soldAt);
-  const typeValues: Record<AssetType, number> = { stock: 0, etf: 0, crypto: 0, "real-estate": 0, bond: 0 };
+  const typeValues: Record<AssetType, number> = {
+    stock: 0,
+    etf: 0,
+    crypto: 0,
+    "real-estate": 0,
+    bond: 0,
+  };
   const total = open.reduce((s, p) => {
     const v = computePnL(p).currentValue;
     typeValues[p.type] += v;

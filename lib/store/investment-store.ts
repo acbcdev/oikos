@@ -52,4 +52,3 @@ export const useInvestmentStore = create<InvestmentState>()(
     { name: "investment-storage", skipHydration: true },
   ),
 );
-

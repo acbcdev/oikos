@@ -10,7 +10,10 @@ interface TimeframeToggleProps {
   setTimeframe: (tf: Timeframe) => void;
 }
 
-export function TimeframeToggle({ timeframe: active, setTimeframe: setActive }: TimeframeToggleProps) {
+export function TimeframeToggle({
+  timeframe: active,
+  setTimeframe: setActive,
+}: TimeframeToggleProps) {
   return (
     <div className="flex p-1.5 bg-card border border-border/50 rounded-xl">
       {timeframes.map((tf) => (

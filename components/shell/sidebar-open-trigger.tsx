@@ -18,9 +18,5 @@ export function SidebarOpenTrigger() {
 export function ContentPadding({ children }: { children: React.ReactNode }) {
   const { open } = useSidebar();
 
-  return (
-    <div className={open ? "" : "pl-12"}>
-      {children}
-    </div>
-  );
+  return <div className={open ? "" : "pl-12"}>{children}</div>;
 }

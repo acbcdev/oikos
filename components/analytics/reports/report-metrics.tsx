@@ -4,7 +4,13 @@ import { PiggyBank, Flame, Trophy, TrendingUp, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { compact } from "@/lib/utils/currency";
 
-export function SavingsRateCard({ avgSavingsRate, savingsRateChange }: { avgSavingsRate: number; savingsRateChange: number }) {
+export function SavingsRateCard({
+  avgSavingsRate,
+  savingsRateChange,
+}: {
+  avgSavingsRate: number;
+  savingsRateChange: number;
+}) {
   const isPositive = savingsRateChange >= 0;
 
   return (
@@ -22,8 +28,11 @@ export function SavingsRateCard({ avgSavingsRate, savingsRateChange }: { avgSavi
           <span className="text-foreground font-display text-4xl font-bold tracking-tighter">
             {avgSavingsRate}%
           </span>
-          <span className={`text-sm font-display font-bold ${isPositive ? "text-positive" : "text-destructive"}`}>
-            {isPositive ? "+" : ""}{savingsRateChange}%
+          <span
+            className={`text-sm font-display font-bold ${isPositive ? "text-positive" : "text-destructive"}`}
+          >
+            {isPositive ? "+" : ""}
+            {savingsRateChange}%
           </span>
         </div>
         <p className="text-muted-foreground text-[11px] font-medium tracking-wide">
@@ -34,8 +43,13 @@ export function SavingsRateCard({ avgSavingsRate, savingsRateChange }: { avgSavi
   );
 }
 
-export function HighestBurnCard({ highestBurnCategory, highestBurnAmount }: { highestBurnCategory: string; highestBurnAmount: number }) {
-
+export function HighestBurnCard({
+  highestBurnCategory,
+  highestBurnAmount,
+}: {
+  highestBurnCategory: string;
+  highestBurnAmount: number;
+}) {
   return (
     <Card className="p-8 rounded-3xl flex flex-col justify-between shadow-card h-52 bg-card border-border/50 group transition-all duration-300 hover:-translate-y-1 hover:bg-secondary hover:border-border">
       <div className="flex items-center justify-between">
@@ -61,8 +75,13 @@ export function HighestBurnCard({ highestBurnCategory, highestBurnAmount }: { hi
   );
 }
 
-export function BestSavingMonthCard({ bestSavingMonth, bestSavingAmount }: { bestSavingMonth: string; bestSavingAmount: number }) {
-
+export function BestSavingMonthCard({
+  bestSavingMonth,
+  bestSavingAmount,
+}: {
+  bestSavingMonth: string;
+  bestSavingAmount: number;
+}) {
   return (
     <Card className="p-8 rounded-3xl flex flex-col justify-between shadow-card h-52 bg-card border-border/50 group transition-all duration-300 hover:-translate-y-1 hover:bg-secondary hover:border-border">
       <div className="flex items-center justify-between">
@@ -89,7 +108,13 @@ export function BestSavingMonthCard({ bestSavingMonth, bestSavingAmount }: { bes
   );
 }
 
-export function IncomeVsSpendCard({ totalIncome, totalExpenses }: { totalIncome: number; totalExpenses: number }) {
+export function IncomeVsSpendCard({
+  totalIncome,
+  totalExpenses,
+}: {
+  totalIncome: number;
+  totalExpenses: number;
+}) {
   const total = totalIncome + totalExpenses;
   const incomePercent = total > 0 ? (totalIncome / total) * 100 : 50;
   const expensePercent = 100 - incomePercent;
@@ -142,15 +167,19 @@ export function IncomeVsSpendCard({ totalIncome, totalExpenses }: { totalIncome:
   );
 }
 
-export function MonthlyRunwayCard({ monthlyRunway }: { monthlyRunway: number }) {
-
+export function MonthlyRunwayCard({
+  monthlyRunway,
+}: {
+  monthlyRunway: number;
+}) {
   const years = Math.floor(monthlyRunway / 12);
   const months = monthlyRunway % 12;
-  const label = monthlyRunway === 0
-    ? "—"
-    : years > 0
-      ? `${years}y ${months}m`
-      : `${months}m`;
+  const label =
+    monthlyRunway === 0
+      ? "—"
+      : years > 0
+        ? `${years}y ${months}m`
+        : `${months}m`;
 
   return (
     <Card className="p-8 rounded-3xl flex flex-col justify-between shadow-card h-52 bg-card border-border/50 group transition-all duration-300 hover:-translate-y-1 hover:bg-secondary hover:border-border">

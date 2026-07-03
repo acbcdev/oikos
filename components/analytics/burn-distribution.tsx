@@ -77,7 +77,11 @@ interface BurnDistributionProps {
   displayCurrency: string;
 }
 
-export function BurnDistribution({ categoryBreakdown, totalCategorySpend, displayCurrency }: BurnDistributionProps) {
+export function BurnDistribution({
+  categoryBreakdown,
+  totalCategorySpend,
+  displayCurrency,
+}: BurnDistributionProps) {
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
 
   const isEmpty = categoryBreakdown.length === 0;
@@ -178,12 +182,22 @@ export function BurnDistribution({ categoryBreakdown, totalCategorySpend, displa
                     return (
                       <div className="bg-card border border-border/50 px-3 py-2 rounded-xl shadow-xl">
                         <div className="flex items-center gap-2 mb-1">
-                          <div className="size-2 rounded-full shrink-0" style={{ background: cat.color }} />
-                          <span className="font-display font-bold text-xs text-foreground">{cat.label}</span>
+                          <div
+                            className="size-2 rounded-full shrink-0"
+                            style={{ background: cat.color }}
+                          />
+                          <span className="font-display font-bold text-xs text-foreground">
+                            {cat.label}
+                          </span>
                         </div>
-                        <div className="font-display font-bold text-sm" style={{ color: cat.color }}>
+                        <div
+                          className="font-display font-bold text-sm"
+                          style={{ color: cat.color }}
+                        >
                           {fmt(cat.amount, displayCurrency)}
-                          <span className="text-muted-foreground font-normal text-xs ml-2">{cat.percent}%</span>
+                          <span className="text-muted-foreground font-normal text-xs ml-2">
+                            {cat.percent}%
+                          </span>
                         </div>
                       </div>
                     );
@@ -192,7 +206,10 @@ export function BurnDistribution({ categoryBreakdown, totalCategorySpend, displa
               </PieChart>
             </ChartContainer>
 
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ zIndex: 0 }}>
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+              style={{ zIndex: 0 }}
+            >
               <span className="text-foreground font-display text-3xl font-bold tracking-tighter">
                 {fmt(totalCategorySpend, displayCurrency)}
               </span>
@@ -251,8 +268,7 @@ export function BurnDistribution({ categoryBreakdown, totalCategorySpend, displa
                   <div className="flex justify-between font-display text-[10px] font-bold uppercase tracking-widest">
                     <span className={cat.textClass}>{cat.label}</span>
                     <span className={`${cat.textClass} opacity-60`}>
-                      {cat.percent}% ·{" "}
-                      {fmt(cat.amount, displayCurrency)}
+                      {cat.percent}% · {fmt(cat.amount, displayCurrency)}
                     </span>
                   </div>
                   <div className="h-1.5 w-full rounded-full overflow-hidden bg-white/5">

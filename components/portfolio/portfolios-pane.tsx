@@ -7,7 +7,15 @@ import { Kbd } from "@/components/ui/kbd";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useInvestmentStore } from "@/lib/store/investment-store";
 import { useMetrics } from "@/lib/hooks/use-metrics";
-import { totalValue, totalGain, totalGainPct, costBasis, realizedGain, realizedValue, byType } from "@/lib/hooks/metrics-portfolio";
+import {
+  totalValue,
+  totalGain,
+  totalGainPct,
+  costBasis,
+  realizedGain,
+  realizedValue,
+  byType,
+} from "@/lib/hooks/metrics-portfolio";
 import { fmt, fmtSplit } from "@/lib/utils/currency";
 import { AllocationBar } from "./allocation-bar";
 import { PortfolioCard } from "./portfolio-card";
@@ -27,7 +35,10 @@ export function PortfoliosPane({
   const allPositions = useInvestmentStore((s) => s.positions);
 
   const displayPositions = useMemo(
-    () => selectedPortfolioId ? allPositions.filter((p) => p.portfolioId === selectedPortfolioId) : allPositions,
+    () =>
+      selectedPortfolioId
+        ? allPositions.filter((p) => p.portfolioId === selectedPortfolioId)
+        : allPositions,
     [allPositions, selectedPortfolioId],
   );
   const displayCurrency = useMemo(
@@ -37,7 +48,15 @@ export function PortfoliosPane({
 
   const metrics = useMetrics(
     { data: { positions: displayPositions } },
-    { totalValue, totalGain, totalGainPct, totalCostBasis: costBasis, realizedGain, realizedValue, byType },
+    {
+      totalValue,
+      totalGain,
+      totalGainPct,
+      totalCostBasis: costBasis,
+      realizedGain,
+      realizedValue,
+      byType,
+    },
   );
   const { totalValue: globalTotalValue } = useMetrics(
     { data: { positions: allPositions } },
@@ -90,7 +109,9 @@ export function PortfoliosPane({
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-2 text-xs font-display text-muted-foreground tabular-nums">
               {metrics.realizedGain !== 0 && (
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="uppercase tracking-wider font-bold opacity-70">Realized</span>
+                  <span className="uppercase tracking-wider font-bold opacity-70">
+                    Realized
+                  </span>
                   <span
                     className={`font-bold ${isRealizedGain ? "text-positive" : "text-negative"}`}
                   >
@@ -104,8 +125,11 @@ export function PortfoliosPane({
               )}
               {metrics.totalCostBasis > 0 && (
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="uppercase tracking-wider font-bold opacity-70">Invested</span>
-                  {fmt(metrics.totalCostBasis, displayCurrency)} → {fmt(metrics.totalValue, displayCurrency)}
+                  <span className="uppercase tracking-wider font-bold opacity-70">
+                    Invested
+                  </span>
+                  {fmt(metrics.totalCostBasis, displayCurrency)} →{" "}
+                  {fmt(metrics.totalValue, displayCurrency)}
                 </span>
               )}
               <span className="uppercase tracking-wider font-bold opacity-70">

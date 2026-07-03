@@ -1,19 +1,36 @@
-import React from 'react';
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Button } from './button';
+import React from "react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Button } from "./button";
 
 const meta = {
-  title: 'UI/Button',
+  title: "UI/Button",
   component: Button,
-  parameters: { layout: 'centered' },
+  parameters: { layout: "centered" },
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'outline', 'secondary', 'ghost', 'destructive', 'link'],
+      control: "select",
+      options: [
+        "default",
+        "outline",
+        "secondary",
+        "ghost",
+        "destructive",
+        "link",
+      ],
     },
     size: {
-      control: 'select',
-      options: ['default', 'xs', 'sm', 'lg', 'xl', 'icon', 'icon-xs', 'icon-sm', 'icon-lg'],
+      control: "select",
+      options: [
+        "default",
+        "xs",
+        "sm",
+        "lg",
+        "xl",
+        "icon",
+        "icon-xs",
+        "icon-sm",
+        "icon-lg",
+      ],
     },
   },
 } satisfies Meta<typeof Button>;
@@ -22,23 +39,23 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: { children: 'Button' },
+  args: { children: "Button" },
 };
 
 export const Outline: Story = {
-  args: { variant: 'outline', children: 'Outline' },
+  args: { variant: "outline", children: "Outline" },
 };
 
 export const Secondary: Story = {
-  args: { variant: 'secondary', children: 'Secondary' },
+  args: { variant: "secondary", children: "Secondary" },
 };
 
 export const Ghost: Story = {
-  args: { variant: 'ghost', children: 'Ghost' },
+  args: { variant: "ghost", children: "Ghost" },
 };
 
 export const Destructive: Story = {
-  args: { variant: 'destructive', children: 'Delete account' },
+  args: { variant: "destructive", children: "Delete account" },
 };
 
 export const AllVariants: Story = {

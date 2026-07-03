@@ -1,11 +1,17 @@
-import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
 
 const meta = {
-  title: 'UI/Tabs',
+  title: "UI/Tabs",
   component: Tabs,
-  parameters: { layout: 'centered' },
-  decorators: [(Story) => <div className="w-80"><Story /></div>],
+  parameters: { layout: "centered" },
+  decorators: [
+    (Story) => (
+      <div className="w-80">
+        <Story />
+      </div>
+    ),
+  ],
 } satisfies Meta<typeof Tabs>;
 
 export default meta;
@@ -61,7 +67,9 @@ export const Disabled: Story = {
     <Tabs defaultValue="overview">
       <TabsList>
         <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="holdings" disabled>Holdings</TabsTrigger>
+        <TabsTrigger value="holdings" disabled>
+          Holdings
+        </TabsTrigger>
         <TabsTrigger value="activity">Activity</TabsTrigger>
       </TabsList>
       <TabsContent value="overview">Portfolio overview.</TabsContent>

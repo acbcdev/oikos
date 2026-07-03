@@ -55,7 +55,10 @@ export async function GET(req: NextRequest) {
       .filter((q) => QUOTE_TYPE_MAP[q.quoteType] !== undefined)
       .slice(0, 8);
 
-    const priceMap = new Map<string, { price: number; changePercent: number }>();
+    const priceMap = new Map<
+      string,
+      { price: number; changePercent: number }
+    >();
     await Promise.allSettled(
       filtered.map(async (q) => {
         const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(q.symbol)}?interval=1d&range=1d`;
@@ -65,7 +68,8 @@ export async function GET(req: NextRequest) {
         });
         if (!res.ok) return;
         const data = await res.json();
-        const meta = data.chart?.result?.[0]?.meta as YahooChartMeta | undefined;
+        const meta = data.chart?.result?.[0]?.meta as
+          YahooChartMeta | undefined;
         if (meta?.regularMarketPrice !== undefined) {
           const prev = meta.chartPreviousClose ?? meta.previousClose;
           const changePercent =

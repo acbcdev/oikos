@@ -1,8 +1,5 @@
 import { AlertTriangle, Target, TrendingDown, Trophy } from "lucide-react";
-import type {
-  SavingsGoal,
-  useTrackerData,
-} from "@/lib/store/tracker-store";
+import type { SavingsGoal, useTrackerData } from "@/lib/store/tracker-store";
 import { cn } from "@/lib/utils";
 import { fmt } from "@/lib/utils/currency";
 
@@ -53,9 +50,7 @@ export function SummaryCards({
               )}
             >
               ·{" "}
-              {totalLimit > 0
-                ? Math.round((totalSpent / totalLimit) * 100)
-                : 0}
+              {totalLimit > 0 ? Math.round((totalSpent / totalLimit) * 100) : 0}
               % used
             </span>
           </p>

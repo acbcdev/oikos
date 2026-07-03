@@ -205,7 +205,10 @@ export function chartData(
   ];
 }
 
-export function ytdChange({ accounts = [], transactions = [] }: MetricData): number {
+export function ytdChange({
+  accounts = [],
+  transactions = [],
+}: MetricData): number {
   const tx = transactions.filter((t) => t.categoryId !== "transfer");
   const now = Dater.now();
   const currentNW = accounts.reduce((s, a) => s + a.balance, 0);

@@ -34,8 +34,10 @@ export const useWalletStore = create<WalletState & WalletActions>()(
         set((state) => ({
           transactions: [tx, ...state.transactions],
           accounts: state.accounts.map((a) => {
-            if (a.id === tx.accountId) return { ...a, balance: a.balance + tx.amount };
-            if (tx.toAccountId && a.id === tx.toAccountId) return { ...a, balance: a.balance + Math.abs(tx.amount) };
+            if (a.id === tx.accountId)
+              return { ...a, balance: a.balance + tx.amount };
+            if (tx.toAccountId && a.id === tx.toAccountId)
+              return { ...a, balance: a.balance + Math.abs(tx.amount) };
             return a;
           }),
         })),
@@ -145,4 +147,3 @@ export function useAvailableCurrencies(): string[] {
     [accounts],
   );
 }
-

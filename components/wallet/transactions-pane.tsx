@@ -94,13 +94,26 @@ export function TransactionsPane({
       .map((group) => ({
         ...group,
         transactions: group.transactions.filter((t) => {
-          if (q && !t.description.toLowerCase().includes(q) && !t.categoryId.toLowerCase().includes(q))
+          if (
+            q &&
+            !t.description.toLowerCase().includes(q) &&
+            !t.categoryId.toLowerCase().includes(q)
+          )
             return false;
-          if (selectedAccountIds.length > 0 && !selectedAccountIds.includes(t.accountId))
+          if (
+            selectedAccountIds.length > 0 &&
+            !selectedAccountIds.includes(t.accountId)
+          )
             return false;
-          if (selectedCategories.length > 0 && !selectedCategories.includes(t.categoryId))
+          if (
+            selectedCategories.length > 0 &&
+            !selectedCategories.includes(t.categoryId)
+          )
             return false;
-          if (selectedTypes.length > 0 && !selectedTypes.includes(txTypeFromCategoryId(t.categoryId)))
+          if (
+            selectedTypes.length > 0 &&
+            !selectedTypes.includes(txTypeFromCategoryId(t.categoryId))
+          )
             return false;
           if (dateFrom && t.date < dateFrom) return false;
           if (dateTo && t.date > dateTo) return false;
@@ -108,7 +121,15 @@ export function TransactionsPane({
         }),
       }))
       .filter((g) => g.transactions.length > 0);
-  }, [query, transactionGroups, selectedAccountIds, selectedCategories, selectedTypes, dateFrom, dateTo]);
+  }, [
+    query,
+    transactionGroups,
+    selectedAccountIds,
+    selectedCategories,
+    selectedTypes,
+    dateFrom,
+    dateTo,
+  ]);
 
   return (
     <section className="pb-8">
@@ -145,15 +166,23 @@ export function TransactionsPane({
         )}
       </div>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete transaction?</AlertDialogTitle>
-            <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This cannot be undone.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleDeleteConfirm}>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -162,7 +191,9 @@ export function TransactionsPane({
 
       <TransactionModal
         open={!!editTarget}
-        onOpenChange={(open) => { if (!open) setEditTarget(null); }}
+        onOpenChange={(open) => {
+          if (!open) setEditTarget(null);
+        }}
         transaction={editTarget ?? undefined}
         accounts={accounts}
         lastUsedAccountId={null}

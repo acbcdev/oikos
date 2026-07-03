@@ -23,14 +23,18 @@ export function TrackerLayout() {
   const [hydrated, setHydrated] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Tracker | null>(null);
-  const [contributeGoal, setContributeGoal] = useState<SavingsGoal | null>(null);
+  const [contributeGoal, setContributeGoal] = useState<SavingsGoal | null>(
+    null,
+  );
   const [view, setView] = useState<ViewMode>("grid");
   const [search, setSearch] = useState("");
 
   useHotkeys("n", () => setAddOpen(true), { preventDefault: true });
 
   useEffect(() => {
-    const unsub = useTrackerStore.persist.onFinishHydration(() => setHydrated(true));
+    const unsub = useTrackerStore.persist.onFinishHydration(() =>
+      setHydrated(true),
+    );
     useTrackerStore.persist.rehydrate();
     return unsub;
   }, []);
@@ -54,7 +58,9 @@ export function TrackerLayout() {
   );
 
   const q = search.toLowerCase();
-  const filteredMonitors = monitors.filter((m) => m.name.toLowerCase().includes(q));
+  const filteredMonitors = monitors.filter((m) =>
+    m.name.toLowerCase().includes(q),
+  );
   const filteredGoals = goals.filter((g) => g.name.toLowerCase().includes(q));
 
   if (!hydrated) {
@@ -81,7 +87,11 @@ export function TrackerLayout() {
         </div>
         <div className="flex items-center gap-3">
           <CycleBar />
-          <Button size="lg" onClick={() => setAddOpen(true)} className="gap-2 font-display font-bold tracking-wide uppercase text-xs">
+          <Button
+            size="lg"
+            onClick={() => setAddOpen(true)}
+            className="gap-2 font-display font-bold tracking-wide uppercase text-xs"
+          >
             <Plus size={14} />
             New Tracker
             <Kbd>N</Kbd>
@@ -125,7 +135,9 @@ export function TrackerLayout() {
             onClick={() => setView("grid")}
             className={cn(
               "relative z-10 flex size-7 items-center justify-center rounded-full transition-colors duration-150",
-              view === "grid" ? "text-foreground" : "text-muted-foreground/40 hover:text-muted-foreground",
+              view === "grid"
+                ? "text-foreground"
+                : "text-muted-foreground/40 hover:text-muted-foreground",
             )}
           >
             <LayoutGrid size={12} />
@@ -134,7 +146,9 @@ export function TrackerLayout() {
             onClick={() => setView("list")}
             className={cn(
               "relative z-10 flex size-7 items-center justify-center rounded-full transition-colors duration-150",
-              view === "list" ? "text-foreground" : "text-muted-foreground/40 hover:text-muted-foreground",
+              view === "list"
+                ? "text-foreground"
+                : "text-muted-foreground/40 hover:text-muted-foreground",
             )}
           >
             <List size={12} />
@@ -149,9 +163,13 @@ export function TrackerLayout() {
             <span className="text-xs font-bold uppercase tracking-widest text-foreground font-display">
               Limits
             </span>
-            <span className="text-xs text-muted-foreground">{filteredMonitors.length}</span>
+            <span className="text-xs text-muted-foreground">
+              {filteredMonitors.length}
+            </span>
             <span className="text-muted-foreground/40 mx-1">—</span>
-            <span className="text-xs text-muted-foreground">Cap categorical spend, reset every cycle</span>
+            <span className="text-xs text-muted-foreground">
+              Cap categorical spend, reset every cycle
+            </span>
           </div>
           <div
             className={cn(
@@ -179,9 +197,13 @@ export function TrackerLayout() {
             <span className="text-xs font-bold uppercase tracking-widest text-foreground font-display">
               Targets
             </span>
-            <span className="text-xs text-muted-foreground">{filteredGoals.length}</span>
+            <span className="text-xs text-muted-foreground">
+              {filteredGoals.length}
+            </span>
             <span className="text-muted-foreground/40 mx-1">—</span>
-            <span className="text-xs text-muted-foreground">Save toward a target by a date</span>
+            <span className="text-xs text-muted-foreground">
+              Save toward a target by a date
+            </span>
           </div>
           <div
             className={cn(
@@ -210,13 +232,21 @@ export function TrackerLayout() {
             <Target size={20} className="text-muted-foreground" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground font-display">No trackers found</p>
+            <p className="text-sm font-semibold text-foreground font-display">
+              No trackers found
+            </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {search ? "Try a different search." : "Create your first tracker to get started."}
+              {search
+                ? "Try a different search."
+                : "Create your first tracker to get started."}
             </p>
           </div>
           {!search && (
-            <Button onClick={() => setAddOpen(true)} variant="outline" size="sm">
+            <Button
+              onClick={() => setAddOpen(true)}
+              variant="outline"
+              size="sm"
+            >
               <Plus size={13} />
               New Tracker
             </Button>
@@ -232,14 +262,18 @@ export function TrackerLayout() {
       />
       <AddTrackerModal
         open={!!editTarget}
-        onOpenChange={(v) => { if (!v) setEditTarget(null); }}
+        onOpenChange={(v) => {
+          if (!v) setEditTarget(null);
+        }}
         tracker={editTarget ?? undefined}
         categories={categories}
         onSubmit={handleTrackerSubmit}
       />
       <ContributeModal
         open={!!contributeGoal}
-        onOpenChange={(v) => { if (!v) setContributeGoal(null); }}
+        onOpenChange={(v) => {
+          if (!v) setContributeGoal(null);
+        }}
         goal={contributeGoal}
       />
     </div>

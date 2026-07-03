@@ -213,12 +213,18 @@ export function useTrackerData(): {
           if (t.categoryId !== monitor.categoryId) return false;
           if (t.amount >= 0) return false;
           if (!accountIdsForCurrency.has(t.accountId)) return false;
-          if (monitor.period === "monthly") return t.date.startsWith(thisMonthStr);
+          if (monitor.period === "monthly")
+            return t.date.startsWith(thisMonthStr);
           return t.date >= thisWeekStart;
         })
         .reduce((s, t) => s + Math.abs(t.amount), 0);
 
-      const { status, percentUsed: pct, remaining, isOver } = analyzeSpend(spent, monitor.limit);
+      const {
+        status,
+        percentUsed: pct,
+        remaining,
+        isOver,
+      } = analyzeSpend(spent, monitor.limit);
 
       return { ...monitor, spent, pct, remaining, isOver, status };
     });
