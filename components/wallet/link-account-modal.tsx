@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/form";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import type { Account } from "@/lib/data/wallet";
+import { currencySymbol } from "@/lib/utils/currency";
 
 const ACCOUNT_TYPES = [
   {
@@ -99,10 +100,7 @@ export function LinkAccountModal({
     defaultValue: "checking",
   });
 
-  const currencySymbol =
-    new Intl.NumberFormat("en-US", { style: "currency", currency })
-      .formatToParts(0)
-      .find((p) => p.type === "currency")?.value ?? "$";
+  const symbol = currencySymbol(currency);
 
   const ActiveIcon =
     ACCOUNT_TYPES.find((t) => t.value === selectedType)?.icon ?? CreditCard;
@@ -255,7 +253,7 @@ export function LinkAccountModal({
                     <FormControl>
                       <NumberInput
                         size="lg"
-                        prefix={currencySymbol}
+                        prefix={symbol}
                         placeholder="0.00"
                         value={field.value ?? ""}
                         onValueChange={field.onChange}

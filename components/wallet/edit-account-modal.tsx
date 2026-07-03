@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import type { Account } from "@/lib/data/wallet";
+import { currencySymbol } from "@/lib/utils/currency";
 
 const accountTypes = ["Checking", "Savings", "Brokerage"] as const;
 
@@ -96,10 +97,7 @@ export function EditAccountModal({
     defaultValue: account.currency,
   });
 
-  const currencySymbol =
-    new Intl.NumberFormat("en-US", { style: "currency", currency })
-      .formatToParts(0)
-      .find((p) => p.type === "currency")?.value ?? "$";
+  const symbol = currencySymbol(currency);
 
   const formatBalance = (raw: string) => {
     if (!raw) return "";
@@ -222,7 +220,7 @@ export function EditAccountModal({
                   <FormControl>
                     <div className="flex items-center bg-white/5 rounded-lg px-4 py-3 focus-within:ring-1 focus-within:ring-primary">
                       <span className="text-sm font-display font-bold text-muted-foreground mr-2">
-                        {currencySymbol}
+                        {symbol}
                       </span>
                       <input
                         type="text"
