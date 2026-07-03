@@ -41,10 +41,11 @@ export function topBurn(
   tx: Transaction[],
 ): { name: string; amount: number } | null {
   const map = new Map<string, number>();
-  tx.filter((t) => t.amount < 0 && t.categoryId).forEach((t) => {
+  for (const t of tx) {
+    if (t.amount >= 0 || !t.categoryId) continue;
     const name = catLabel(t.categoryId);
     map.set(name, (map.get(name) ?? 0) + Math.abs(t.amount));
-  });
+  }
   const top = Array.from(map.entries()).sort(([, a], [, b]) => b - a)[0];
   return top ? { name: top[0], amount: Math.round(top[1]) } : null;
 }

@@ -184,23 +184,23 @@ export function chartData(
   };
 
   return [
-    ...months
-      .filter(({ year, month }) =>
-        tx.some((t) => t.date.startsWith(Dater.ofYM(year, month).month())),
-      )
-      .map(({ year, month }) => {
-        const endStr = `${Dater.ofYM(year, month).month()}-31`;
-        const laterNet = tx
-          .filter((t) => t.date > endStr)
-          .reduce((s, t) => s + t.amount, 0);
-        return {
+    ...months.flatMap(({ year, month }) => {
+      if (!tx.some((t) => t.date.startsWith(Dater.ofYM(year, month).month())))
+        return [];
+      const endStr = `${Dater.ofYM(year, month).month()}-31`;
+      const laterNet = tx
+        .filter((t) => t.date > endStr)
+        .reduce((s, t) => s + t.amount, 0);
+      return [
+        {
           month: Dater.ofYM(year, month).short(),
           value: Math.max(0, currentNW - laterNet),
           ...(year === curYear && month === curMonth
             ? { isCurrent: true as const }
             : {}),
-        };
-      }),
+        },
+      ];
+    }),
     projected,
   ];
 }

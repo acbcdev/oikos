@@ -202,11 +202,10 @@ export function useTrackerData(): {
     const thisWeekStart = now.weekStart().iso();
 
     return monitors.map((monitor) => {
-      const accountIdsForCurrency = new Set(
-        accounts
-          .filter((a) => a.currency === monitor.currency)
-          .map((a) => a.id),
-      );
+      const accountIdsForCurrency = new Set<string>();
+      for (const a of accounts) {
+        if (a.currency === monitor.currency) accountIdsForCurrency.add(a.id);
+      }
 
       const spent = transactions
         .filter((t) => {
