@@ -34,33 +34,41 @@ Re-run before/after fixes: `npx react-doctor@latest --verbose --scope changed`
 
 Verified via `npx react-doctor@latest why <file>:<line>` before/after each fix, a final `--category bugs` JSON scan (0 diagnostics), `pnpm lint` and `pnpm typecheck` (both clean), and a full `--scope changed --verbose` scan (86/100, 0 errors, the 5 remaining warnings are pre-existing Performance/Accessibility/Maintainability items already tracked below, not new regressions).
 
-## Performance (25)
+## Performance (25) — 18 fixed, 4 false-positive, 3 deferred
 
-- [ ] `components/analytics/burn-distribution-chart.tsx:3` — recharts eager load → `next/dynamic`
-- [ ] `components/analytics/reports/net-worth-bar-chart.tsx:3` — same
-- [ ] `components/analytics/sparkline-area-chart.tsx:3` — same
-- [ ] `components/ui/chart.tsx:4` — same
-- [ ] `components/ui/chart.tsx:53` — unstable context value, wrap in `useMemo`
-- [ ] `components/ui/form.tsx:34` — same
-- [ ] `components/ui/form.tsx:68` — same
-- [ ] `components/wallet/transactions-toolbar.tsx:85` — `array.find()` in loop → build `Map`
-- [ ] `components/wallet/transactions-toolbar.tsx:93` — same
-- [ ] `components/wallet/date-range-picker.tsx:110` — `useState(getFullYear())` no lazy init
-- [ ] `components/portfolio/asset-search-combobox.tsx:47` — `useRef(new Map())` no lazy init
-- [ ] `components/wallet/edit-account-modal.tsx:98` — `Intl.NumberFormat` rebuilt per call
-- [ ] `components/wallet/link-account-modal.tsx:103` — same
-- [ ] `lib/utils/currency.ts:2` — same
-- [ ] `lib/utils/currency.ts:15` — same
-- [ ] `lib/utils/number-format.ts:26` — same
-- [ ] `lib/utils/number-format.ts:41` — same
-- [ ] `components/ui/chart.tsx:131` — `useMemo` before early return, move JSX to memo'd child
-- [ ] `components/portfolio/positions-pane.tsx:208` — `[...arr].sort()` → `toSorted()`
-- [ ] `components/ui/chart.tsx:182` — chained `.filter().map()` → single pass
-- [ ] `components/ui/chart.tsx:280` — same
-- [ ] `components/wallet/transactions-pane.tsx:93` — same
-- [ ] `lib/hooks/metric-fns.ts:44` — same
-- [ ] `lib/hooks/metrics.ts:187` — same
-- [ ] `lib/store/tracker-store.ts:206` — same
+- [x] `components/wallet/transactions-toolbar.tsx:85` — `array.find()` in loop → build `Map` (`accountById`)
+- [x] `components/wallet/transactions-toolbar.tsx:93` — same, `categoryById`
+- [x] `components/wallet/date-range-picker.tsx:110` — `useState(getFullYear())` → `useState(() => getFullYear())`
+- [x] `components/portfolio/asset-search-combobox.tsx:47` — `useRef(new Map())` → `useState(() => new Map())` (lazy init, no ref-null-`!` dance per feedback)
+- [x] `components/wallet/edit-account-modal.tsx:98` — `Intl.NumberFormat` rebuilt per render → new shared `currencySymbol()` helper in `lib/utils/currency.ts` (module-level cache keyed by currency, no hook)
+- [x] `components/wallet/link-account-modal.tsx:103` — same fix, same helper (deduped identical logic across both files)
+- [x] `lib/utils/currency.ts:2` — `fmt`/`fmtSplit` now share a module-level `Map<currency, Intl.NumberFormat>` cache instead of constructing per call
+- [x] `lib/utils/currency.ts:15` — same
+- [x] `lib/utils/number-format.ts:26` — `Intl.NumberFormat` hoisted to module-scope `integerFormatter` constant
+- [x] `lib/utils/number-format.ts:41` — same
+- [x] `components/ui/chart.tsx:131` — extracted `ChartTooltipLabel` as a `React.memo`'d child rendered after the early return, instead of `useMemo`'ing JSX before it
+- [x] `components/portfolio/positions-pane.tsx:208` — `[...arr].sort()` → `arr.toSorted()`
+- [x] `components/ui/chart.tsx:182` — chained `.filter().map()` → single-pass `reduce`, preserves post-filter `index` via `acc.length`
+- [x] `components/ui/chart.tsx:280` — chained `.filter().map()` → single-pass `flatMap`
+- [x] `components/wallet/transactions-pane.tsx:93` — `.map().filter()` → single-pass `flatMap`
+- [x] `lib/hooks/metric-fns.ts:44` — `.filter().forEach()` → single `for...of`
+- [x] `lib/hooks/metrics.ts:187` — `.filter().map()` → single-pass `flatMap`
+- [x] `lib/store/tracker-store.ts:206` — `.filter().map()` building a `Set` → single `for...of` loop adding directly to the `Set`
+
+**False positives (candidates for `.react-doctor/false-positives.md`)** — recharts is only ever reached through an existing `next/dynamic({ ssr: false })` boundary at each file's sole consumer, so the static per-file import scan can't see that it's already lazy-loaded:
+
+- [ ] `components/analytics/burn-distribution-chart.tsx:3` — sole consumer `components/analytics/burn-distribution.tsx` already wraps it in `dynamic(..., { ssr: false })`
+- [ ] `components/analytics/reports/net-worth-bar-chart.tsx:3` — same, consumer `net-worth-chart.tsx`
+- [ ] `components/analytics/sparkline-area-chart.tsx:3` — same, consumer `metric-cards.tsx`
+- [ ] `components/ui/chart.tsx:4` — every runtime importer of this shared primitives file is itself one of the three dynamically-loaded chart components above (other importers only pull the `ChartConfig` _type_, which is erased at build)
+
+**Deferred** — `jsx-no-constructed-context-values` (unstable context value, `<X.Provider value={{...}}>`):
+
+- [ ] `components/ui/chart.tsx:53`
+- [ ] `components/ui/form.tsx:34`
+- [ ] `components/ui/form.tsx:68`
+
+User call: don't add `useMemo` for context-value identity stability without React Compiler enabled (confirmed off — no `reactCompiler` in `next.config.ts`, no `babel-plugin-react-compiler` dep). Revisit once the compiler is turned on project-wide, or if the user wants the manual `useMemo` now.
 
 ## Accessibility (8)
 
