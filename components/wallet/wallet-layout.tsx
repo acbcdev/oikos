@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,81 @@ import { TransactionsToolbar } from "./transactions-toolbar";
 import { LinkAccountModal } from "./link-account-modal";
 
 export type TxType = "income" | "expense" | "transfer";
+
+interface FilterState {
+  query: string;
+  selectedAccountIds: string[];
+  selectedCategories: string[];
+  selectedTypes: TxType[];
+  dateFrom: string | null;
+  dateTo: string | null;
+  presetLabel: string | null;
+}
+
+const initialFilterState: FilterState = {
+  query: "",
+  selectedAccountIds: [],
+  selectedCategories: [],
+  selectedTypes: [],
+  dateFrom: null,
+  dateTo: null,
+  presetLabel: null,
+};
+
+type FilterAction =
+  | { type: "setQuery"; query: string }
+  | { type: "toggleAccount"; id: string }
+  | { type: "toggleCategory"; category: string }
+  | { type: "toggleType"; txType: TxType }
+  | {
+      type: "setDateRange";
+      from: string | null;
+      to: string | null;
+      label: string | null;
+    }
+  | { type: "clear" };
+
+function toggle<T>(list: T[], value: T): T[] {
+  return list.includes(value)
+    ? list.filter((x) => x !== value)
+    : [...list, value];
+}
+
+const filterHandlers: {
+  [K in FilterAction["type"]]: (
+    state: FilterState,
+    action: Extract<FilterAction, { type: K }>,
+  ) => FilterState;
+} = {
+  setQuery: (state, action) => ({ ...state, query: action.query }),
+  toggleAccount: (state, action) => ({
+    ...state,
+    selectedAccountIds: toggle(state.selectedAccountIds, action.id),
+  }),
+  toggleCategory: (state, action) => ({
+    ...state,
+    selectedCategories: toggle(state.selectedCategories, action.category),
+  }),
+  toggleType: (state, action) => ({
+    ...state,
+    selectedTypes: toggle(state.selectedTypes, action.txType),
+  }),
+  setDateRange: (state, action) => ({
+    ...state,
+    dateFrom: action.from,
+    dateTo: action.to,
+    presetLabel: action.label,
+  }),
+  clear: () => initialFilterState,
+};
+
+function filterReducer(state: FilterState, action: FilterAction): FilterState {
+  const handler = filterHandlers[action.type] as (
+    state: FilterState,
+    action: FilterAction,
+  ) => FilterState;
+  return handler(state, action);
+}
 
 export function WalletLayout() {
   const [hydrated, setHydrated] = useState(false);
@@ -44,50 +119,42 @@ export function WalletLayout() {
   );
 
   // Filter state
-  const [query, setQuery] = useState("");
-  const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedTypes, setSelectedTypes] = useState<TxType[]>([]);
-  const [dateFrom, setDateFrom] = useState<string | null>(null);
-  const [dateTo, setDateTo] = useState<string | null>(null);
-  const [presetLabel, setPresetLabel] = useState<string | null>(null);
+  const [filters, dispatchFilter] = useReducer(
+    filterReducer,
+    initialFilterState,
+  );
+  const {
+    query,
+    selectedAccountIds,
+    selectedCategories,
+    selectedTypes,
+    dateFrom,
+    dateTo,
+    presetLabel,
+  } = filters;
 
-  const toggleAccount = useCallback((id: string) => {
-    setSelectedAccountIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  }, []);
-
-  const toggleCategory = useCallback((cat: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((x) => x !== cat) : [...prev, cat],
-    );
-  }, []);
-
-  const toggleType = useCallback((type: TxType) => {
-    setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((x) => x !== type) : [...prev, type],
-    );
-  }, []);
-
-  const setCustomDateRange = useCallback(
-    (from: string | null, to: string | null, label?: string) => {
-      setDateFrom(from);
-      setDateTo(to);
-      setPresetLabel(label ?? null);
-    },
+  const setQuery = useCallback(
+    (query: string) => dispatchFilter({ type: "setQuery", query }),
     [],
   );
-
-  const clearFilters = useCallback(() => {
-    setQuery("");
-    setSelectedAccountIds([]);
-    setSelectedCategories([]);
-    setSelectedTypes([]);
-    setDateFrom(null);
-    setDateTo(null);
-    setPresetLabel(null);
-  }, []);
+  const toggleAccount = useCallback(
+    (id: string) => dispatchFilter({ type: "toggleAccount", id }),
+    [],
+  );
+  const toggleCategory = useCallback(
+    (category: string) => dispatchFilter({ type: "toggleCategory", category }),
+    [],
+  );
+  const toggleType = useCallback(
+    (txType: TxType) => dispatchFilter({ type: "toggleType", txType }),
+    [],
+  );
+  const setCustomDateRange = useCallback(
+    (from: string | null, to: string | null, label?: string) =>
+      dispatchFilter({ type: "setDateRange", from, to, label: label ?? null }),
+    [],
+  );
+  const clearFilters = useCallback(() => dispatchFilter({ type: "clear" }), []);
 
   useHotkeys("c", () => setLinkModalOpen(true), { preventDefault: true });
 
