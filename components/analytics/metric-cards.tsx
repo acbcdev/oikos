@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -20,17 +21,16 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Area, AreaChart } from "recharts";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
+import { type ChartConfig } from "@/components/ui/chart";
 import { useWalletStore } from "@/lib/store/wallet-store";
 import { useTrackerStore, useTrackerData } from "@/lib/store/tracker-store";
 import { isHighSpend } from "@/lib/services/spend-analysis";
 import { fmt, fmtSplit } from "@/lib/utils/currency";
+
+const SparklineAreaChart = dynamic(
+  () => import("@/components/analytics/sparkline-area-chart"),
+  { ssr: false },
+);
 
 const netWorthChartConfig = {
   value: { label: "Net Worth", color: "var(--color-positive)" },
@@ -76,36 +76,12 @@ export function NetWorthCard({
       </CardHeader>
 
       <div className="absolute bottom-0 left-0 right-0 h-20 opacity-30 pointer-events-none">
-        <ChartContainer config={netWorthChartConfig} className="w-full h-full">
-          <AreaChart
-            data={netWorthSparkline}
-            margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="netWorthGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-positive)"
-                  stopOpacity={0.4}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-positive)"
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="var(--color-positive)"
-              strokeWidth={2}
-              fill="url(#netWorthGrad)"
-              dot={false}
-              isAnimationActive={false}
-            />
-          </AreaChart>
-        </ChartContainer>
+        <SparklineAreaChart
+          data={netWorthSparkline}
+          config={netWorthChartConfig}
+          colorVar="var(--color-positive)"
+          gradientId="netWorthGrad"
+        />
       </div>
 
       <CardContent className="px-6 pb-4 relative z-10 mt-auto">
@@ -313,46 +289,16 @@ export function BurnRateCard({
       </CardContent>
 
       <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none">
-        <ChartContainer config={burnChartConfig} className="w-full h-full">
-          <AreaChart
-            data={burnSparkline}
-            margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="burnGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-destructive)"
-                  stopOpacity={0.3}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-destructive)"
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="var(--color-destructive)"
-              strokeWidth={2}
-              fill="url(#burnGrad)"
-              dot={false}
-              isAnimationActive={true}
-              animationDuration={1200}
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  hideLabel
-                  formatter={(value) => [`$${value}`, "Daily"]}
-                />
-              }
-              cursor={false}
-            />
-          </AreaChart>
-        </ChartContainer>
+        <SparklineAreaChart
+          data={burnSparkline}
+          config={burnChartConfig}
+          colorVar="var(--color-destructive)"
+          gradientId="burnGrad"
+          gradientOpacity={0.3}
+          isAnimationActive
+          animationDuration={1200}
+          tooltip
+        />
       </div>
     </Card>
   );
