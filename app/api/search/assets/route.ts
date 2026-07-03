@@ -69,7 +69,8 @@ export async function GET(req: NextRequest) {
         if (!res.ok) return;
         const data = await res.json();
         const meta = data.chart?.result?.[0]?.meta as
-          YahooChartMeta | undefined;
+          | YahooChartMeta
+          | undefined;
         if (meta?.regularMarketPrice !== undefined) {
           const prev = meta.chartPreviousClose ?? meta.previousClose;
           const changePercent =
