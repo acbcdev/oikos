@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -81,24 +81,27 @@ export function SavingsGoalForm({
     } else {
       form.reset(empty());
     }
-  }, [open, tracker]);
+  }, [open, tracker, form]);
 
-  const submit = (data: GoalForm) => {
-    onSubmit({
-      id: tracker?.id || `sg-${Date.now()}`,
-      type: "savings-goal",
-      name: data.name.trim(),
-      currency: data.currency,
-      targetAmount: parseFloat(data.targetAmount),
-      currentAmount:
-        tracker?.type === "savings-goal" ? tracker.currentAmount : 0,
-      deadline: data.deadline || undefined,
-      lastContributedAt:
-        tracker?.type === "savings-goal" ? tracker.lastContributedAt : null,
-      contributions:
-        tracker?.type === "savings-goal" ? tracker.contributions : [],
-    });
-  };
+  const submit = useCallback(
+    (data: GoalForm) => {
+      onSubmit({
+        id: tracker?.id || `sg-${Date.now()}`,
+        type: "savings-goal",
+        name: data.name.trim(),
+        currency: data.currency,
+        targetAmount: parseFloat(data.targetAmount),
+        currentAmount:
+          tracker?.type === "savings-goal" ? tracker.currentAmount : 0,
+        deadline: data.deadline || undefined,
+        lastContributedAt:
+          tracker?.type === "savings-goal" ? tracker.lastContributedAt : null,
+        contributions:
+          tracker?.type === "savings-goal" ? tracker.contributions : [],
+      });
+    },
+    [onSubmit, tracker],
+  );
 
   return (
     <Form {...form}>

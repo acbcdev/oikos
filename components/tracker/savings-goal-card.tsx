@@ -1,6 +1,16 @@
 "use client";
 
-import { Plane, Shield, Laptop, Home, Target, MoreHorizontal, Pencil, Trash2, Plus } from "lucide-react";
+import {
+  Plane,
+  Shield,
+  Laptop,
+  Home,
+  Target,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Plus,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmt } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/button";
@@ -13,31 +23,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { SavingsGoal } from "@/lib/store/tracker-store";
 
-const GOAL_ICON: Record<string, React.ElementType> = {
-  vacation: Plane,
-  emergency: Shield,
-  laptop: Laptop,
-  home: Home,
-};
-
-function inferIcon(name: string): React.ElementType {
-  const lower = name.toLowerCase();
-  if (lower.includes("vacation") || lower.includes("trip") || lower.includes("travel"))
-    return Plane;
-  if (lower.includes("emergency") || lower.includes("fund") || lower.includes("safety"))
-    return Shield;
-  if (lower.includes("laptop") || lower.includes("mac") || lower.includes("computer"))
-    return Laptop;
-  if (lower.includes("home") || lower.includes("house")) return Home;
-  return Target;
-}
+const GOAL_ICON_RULES = [
+  { keywords: ["vacation", "trip", "travel"], icon: Plane },
+  { keywords: ["emergency", "fund", "safety"], icon: Shield },
+  { keywords: ["laptop", "mac", "computer"], icon: Laptop },
+  { keywords: ["home", "house"], icon: Home },
+];
 
 function formatDeadline(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function formatLastContrib(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 interface SavingsGoalCardProps {
@@ -47,9 +52,19 @@ interface SavingsGoalCardProps {
   onContribute?: () => void;
 }
 
-export function SavingsGoalCard({ goal, onEdit, onDelete, onContribute }: SavingsGoalCardProps) {
-  const Icon = inferIcon(goal.name);
-  const pct = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
+export function SavingsGoalCard({
+  goal,
+  onEdit,
+  onDelete,
+  onContribute,
+}: SavingsGoalCardProps) {
+  const lowerName = goal.name.toLowerCase();
+  const Icon =
+    GOAL_ICON_RULES.find((rule) =>
+      rule.keywords.some((k) => lowerName.includes(k)),
+    )?.icon ?? Target;
+  const pct =
+    goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
   const clampedPct = Math.min(pct, 100);
   const remaining = goal.targetAmount - goal.currentAmount;
   const isComplete = goal.currentAmount >= goal.targetAmount;
@@ -67,15 +82,27 @@ export function SavingsGoalCard({ goal, onEdit, onDelete, onContribute }: Saving
               {goal.name}
             </p>
             <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-              {goal.deadline ? `Target · By ${formatDeadline(goal.deadline)}` : "Savings Goal"}
+              {goal.deadline
+                ? `Target · By ${formatDeadline(goal.deadline)}`
+                : "Savings Goal"}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
-            <span className={cn("size-1.5 rounded-full", isComplete ? "bg-primary" : "bg-emerald-400")} />
-            <span className={cn("text-[10px] font-semibold uppercase tracking-wider", isComplete ? "text-primary" : "text-emerald-400")}>
+            <span
+              className={cn(
+                "size-1.5 rounded-full",
+                isComplete ? "bg-primary" : "bg-emerald-400",
+              )}
+            />
+            <span
+              className={cn(
+                "text-[10px] font-semibold uppercase tracking-wider",
+                isComplete ? "text-primary" : "text-emerald-400",
+              )}
+            >
               {isComplete ? "Complete" : "On Track"}
             </span>
           </div>
@@ -98,7 +125,10 @@ export function SavingsGoalCard({ goal, onEdit, onDelete, onContribute }: Saving
                 Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem
+                onClick={onDelete}
+                className="text-destructive focus:text-destructive"
+              >
                 <Trash2 size={12} />
                 Delete
               </DropdownMenuItem>
@@ -114,7 +144,9 @@ export function SavingsGoalCard({ goal, onEdit, onDelete, onContribute }: Saving
         </span>
         <span className="text-sm text-muted-foreground">
           / {fmt(goal.targetAmount, goal.currency)}{" "}
-          <span className="text-[10px] uppercase tracking-wider">{goal.currency}</span>
+          <span className="text-[10px] uppercase tracking-wider">
+            {goal.currency}
+          </span>
         </span>
       </div>
 
@@ -128,9 +160,13 @@ export function SavingsGoalCard({ goal, onEdit, onDelete, onContribute }: Saving
         </div>
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-muted-foreground">
-            {remaining > 0 ? `${fmt(remaining, goal.currency)} to go` : "Goal reached"}
+            {remaining > 0
+              ? `${fmt(remaining, goal.currency)} to go`
+              : "Goal reached"}
           </span>
-          <span className="text-[11px] text-muted-foreground">{Math.round(clampedPct)}%</span>
+          <span className="text-[11px] text-muted-foreground">
+            {Math.round(clampedPct)}%
+          </span>
         </div>
       </div>
 

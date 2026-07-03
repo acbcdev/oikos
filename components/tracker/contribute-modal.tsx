@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -31,7 +32,11 @@ interface ContributeModalProps {
   goal: SavingsGoal | null;
 }
 
-export function ContributeModal({ open, onOpenChange, goal }: ContributeModalProps) {
+export function ContributeModal({
+  open,
+  onOpenChange,
+  goal,
+}: ContributeModalProps) {
   const addContribution = useTrackerStore((s) => s.addContribution);
 
   const form = useForm<FormValues>({
@@ -39,22 +44,29 @@ export function ContributeModal({ open, onOpenChange, goal }: ContributeModalPro
     defaultValues: { amount: "", note: "" },
   });
 
-  if (!goal) return null;
+  const onSubmit = useCallback(
+    (data: FormValues) => {
+      if (!goal) return;
+      addContribution(goal.id, {
+        id: `contrib-${Date.now()}`,
+        amount: parseFloat(data.amount),
+        date: new Date().toISOString().split("T")[0],
+        note: data.note || undefined,
+      });
+      onOpenChange(false);
+      form.reset();
+    },
+    [addContribution, goal, onOpenChange, form],
+  );
 
-  const onSubmit = (data: FormValues) => {
-    addContribution(goal.id, {
-      id: `contrib-${Date.now()}`,
-      amount: parseFloat(data.amount),
-      date: new Date().toISOString().split("T")[0],
-      note: data.note || undefined,
-    });
-    onOpenChange(false);
-    form.reset();
-  };
+  if (!goal) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton className="sm:max-w-md bg-card border-white/5 p-0 gap-0">
+      <DialogContent
+        showCloseButton
+        className="sm:max-w-md bg-card border-white/5 p-0 gap-0"
+      >
         <header className="px-8 pt-8 pb-6 flex items-center gap-3">
           <span className="size-8 rounded-lg bg-primary flex items-center justify-center">
             <PiggyBank size={15} className="text-primary-foreground" />
@@ -68,7 +80,10 @@ export function ContributeModal({ open, onOpenChange, goal }: ContributeModalPro
         </header>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="px-8 pb-8 space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="px-8 pb-8 space-y-4"
+          >
             <FormField
               control={form.control}
               name="amount"
@@ -112,7 +127,10 @@ export function ContributeModal({ open, onOpenChange, goal }: ContributeModalPro
                 type="button"
                 variant="outline"
                 className="flex-1"
-                onClick={() => { onOpenChange(false); form.reset(); }}
+                onClick={() => {
+                  onOpenChange(false);
+                  form.reset();
+                }}
               >
                 Cancel
               </Button>

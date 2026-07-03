@@ -1,7 +1,7 @@
 "use client";
 
 import { PiggyBank, TrendingDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { CategoryDef } from "@/lib/data/categories";
 import type { Tracker } from "@/lib/store/tracker-store";
@@ -27,11 +27,14 @@ export function AddTrackerModal({
   onSubmit,
 }: AddTrackerModalProps) {
   const isEdit = !!tracker;
-  const [type, setType] = useState<TrackerType>("spend-monitor");
-
-  useEffect(() => {
+  const [type, setType] = useState<TrackerType>(
+    tracker?.type ?? "spend-monitor",
+  );
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) setType(tracker?.type ?? "spend-monitor");
-  }, [open, tracker]);
+  }
 
   const close = () => onOpenChange(false);
 
@@ -98,7 +101,10 @@ export function AddTrackerModal({
                         : "border-border/50 bg-secondary/30 text-muted-foreground hover:border-border hover:bg-secondary/60 hover:text-foreground",
                     )}
                   >
-                    <Icon size={15} className={selected ? "text-primary" : ""} />
+                    <Icon
+                      size={15}
+                      className={selected ? "text-primary" : ""}
+                    />
                     <div>
                       <p className="text-xs font-bold font-display uppercase tracking-wider">
                         {label}

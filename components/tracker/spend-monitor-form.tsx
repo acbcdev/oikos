@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -95,19 +95,22 @@ export function SpendMonitorForm({
     } else {
       form.reset(EMPTY);
     }
-  }, [open, tracker]);
+  }, [open, tracker, form]);
 
-  const submit = (data: MonitorForm) => {
-    onSubmit({
-      id: tracker?.id || `tm-${Date.now()}`,
-      type: "spend-monitor",
-      name: data.name.trim(),
-      categoryId: data.categoryId,
-      currency: data.currency,
-      limit: parseFloat(data.limit),
-      period: data.period,
-    });
-  };
+  const submit = useCallback(
+    (data: MonitorForm) => {
+      onSubmit({
+        id: tracker?.id || `tm-${Date.now()}`,
+        type: "spend-monitor",
+        name: data.name.trim(),
+        categoryId: data.categoryId,
+        currency: data.currency,
+        limit: parseFloat(data.limit),
+        period: data.period,
+      });
+    },
+    [onSubmit, tracker],
+  );
 
   return (
     <Form {...form}>
