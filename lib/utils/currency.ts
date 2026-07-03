@@ -1,24 +1,42 @@
+const moneyFormatters = new Map<string, Intl.NumberFormat>();
+
+function moneyFormatter(currency: string): Intl.NumberFormat {
+  let formatter = moneyFormatters.get(currency);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      currencyDisplay: "narrowSymbol",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    moneyFormatters.set(currency, formatter);
+  }
+  return formatter;
+}
+
+const symbolFormatters = new Map<string, Intl.NumberFormat>();
+
+export function currencySymbol(currency: string): string {
+  let formatter = symbolFormatters.get(currency);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("en-US", { style: "currency", currency });
+    symbolFormatters.set(currency, formatter);
+  }
+  return (
+    formatter.formatToParts(0).find((p) => p.type === "currency")?.value ?? "$"
+  );
+}
+
 export function fmt(value: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    currencyDisplay: "narrowSymbol",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+  return moneyFormatter(currency).format(value);
 }
 
 export function fmtSplit(
   value: number,
   currency = "USD",
 ): { whole: string; decimal: string } {
-  const formatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    currencyDisplay: "narrowSymbol",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const formatter = moneyFormatter(currency);
 
   const parts = formatter.formatToParts(Math.abs(value));
   const sign = value < 0 ? "-" : "";

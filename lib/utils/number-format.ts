@@ -1,3 +1,7 @@
+const integerFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0,
+});
+
 /**
  * Strip formatting chars, keep digits / decimal point / minus.
  * Handles comma-separated values like "1,234.56" → "1234.56"
@@ -21,11 +25,7 @@ export function formatLive(raw: string): string {
   const intStr = dotIndex >= 0 ? abs.slice(0, dotIndex) : abs;
   const decStr = dotIndex >= 0 ? abs.slice(dotIndex) : ""; // includes the dot
   const intNum = parseInt(intStr || "0", 10);
-  const formattedInt = isNaN(intNum)
-    ? intStr
-    : new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(
-        intNum,
-      );
+  const formattedInt = isNaN(intNum) ? intStr : integerFormatter.format(intNum);
   return (negative ? "-" : "") + formattedInt + decStr;
 }
 
@@ -36,7 +36,5 @@ export function formatLive(raw: string): string {
 export function formatInteger(val: string): string {
   if (!val) return "";
   const num = parseInt(val, 10);
-  return isNaN(num)
-    ? ""
-    : new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(num);
+  return isNaN(num) ? "" : integerFormatter.format(num);
 }
