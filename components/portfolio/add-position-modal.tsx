@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BarChart3, Bitcoin, Pencil, Plus, TrendingUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import type { AssetSearchResult } from "@/app/api/search/assets/route";
@@ -139,11 +139,6 @@ export function AddPositionModal({
       setSelectedAsset(null);
       setComboboxKey((k) => k + 1);
       setFetchedCurrentPrice(position?.currentPrice ?? null);
-    }
-  }
-
-  useEffect(() => {
-    if (open) {
       form.reset({
         portfolioId:
           position?.portfolioId ??
@@ -162,14 +157,7 @@ export function AddPositionModal({
         notes: position?.notes ?? "",
       });
     }
-  }, [
-    open,
-    position,
-    defaultPortfolioId,
-    lastUsedPortfolioId,
-    portfolios,
-    form,
-  ]);
+  }
 
   async function handleAssetSelect(asset: AssetSearchResult) {
     setSelectedAsset(asset);

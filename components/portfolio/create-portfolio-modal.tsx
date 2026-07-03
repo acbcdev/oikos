@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -47,14 +47,16 @@ export function CreatePortfolioModal({
     defaultValues: { name: "", description: "" },
   });
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       form.reset({
         name: portfolio?.name ?? "",
         description: portfolio?.description ?? "",
       });
     }
-  }, [open, portfolio, form]);
+  }
 
   function onSubmit(values: FormValues) {
     if (isEditing) {

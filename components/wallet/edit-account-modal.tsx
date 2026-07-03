@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -75,7 +75,9 @@ export function EditAccountModal({
     },
   });
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       form.reset({
         name: account.name,
@@ -86,7 +88,7 @@ export function EditAccountModal({
         balance: String(account.balance),
       });
     }
-  }, [open, account, form]);
+  }
 
   const currency = useWatch({
     control: form.control,
