@@ -258,12 +258,12 @@ export function DateRangePicker({
       <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-1.5">
         <div className="flex flex-wrap gap-1.5">
           {PRESETS_ROW1.map((p) => (
-            <PresetBtn key={p.label} preset={p} {...sharedPresetProps} />
+            <PresetBtn {...sharedPresetProps} key={p.label} preset={p} />
           ))}
         </div>
         <div className="flex flex-wrap gap-1.5">
           {PRESETS_ROW2.map((p) => (
-            <PresetBtn key={p.label} preset={p} {...sharedPresetProps} />
+            <PresetBtn {...sharedPresetProps} key={p.label} preset={p} />
           ))}
         </div>
       </div>
