@@ -72,33 +72,36 @@ User call: don't add `useMemo` for context-value identity stability without Reac
 
 ## Accessibility (8)
 
-- [ ] `components/portfolio/close-position-modal.tsx:87` — label missing `htmlFor`
-- [ ] `components/portfolio/close-position-modal.tsx:108` — same
-- [ ] `components/ui/label.tsx:9` — same
-- [ ] `components/ui/date-picker.tsx:78` — control missing accessible label
-- [ ] `components/wallet/edit-account-modal.tsx:225` — same
-- [ ] `components/wallet/transaction-form/amount-field.tsx:33` — same
-- [ ] `components/ui/input-group.tsx:54` — click handler missing keyboard handler
-- [ ] `components/wallet/transaction-form/amount-field.tsx:38` — remove `autoFocus`
+- [x] `components/portfolio/close-position-modal.tsx:87` — label missing `htmlFor`. Added `id="sellPrice"`/`htmlFor`; `NumberInput` already spreads `id` onto its `<input>`.
+- [x] `components/portfolio/close-position-modal.tsx:108` — same. Added `id="sellDate"`/`htmlFor`; added `id` passthrough to `DatePicker` (new prop, forwarded to its trigger `<button>` — `button` is a labelable element).
+  - Side effect surfaced by rescan: `components/ui/date-picker.tsx:81` — `control-has-associated-label` false positive. `PopoverTrigger`'s `render={<button .../>}` supplies only the element type/attrs; Base UI injects `PopoverTrigger`'s own `children` (the `CalendarIcon` + text span) into it at runtime, so the button always has real visible text — the static scanner just can't see across that injection. Same false-positive class as the recharts dynamic-import findings above. Suppressed with `react-doctor-disable-next-line` + justification (same precedent as `calendar.tsx:201`).
+- [x] `components/ui/date-picker.tsx:78` — control missing accessible label. Same finding as the `:81` side effect noted above (line shifted by the `id` prop edits) — already fixed/suppressed there.
+- [x] `components/wallet/edit-account-modal.tsx:225` — same. Both this and `amount-field.tsx:33` wrap the real `<input>` inside a custom `<div>` (currency-prefix layout), so it's never `FormControl`'s direct child — left the shared `components/ui/form.tsx` untouched (user call) and instead wired `useId()` at the call site: explicit `htmlFor={balanceInputId}` on `FormLabel` (already passes through via its existing `{...props}` spread — no form.tsx change needed) + matching `id` on the `<input>`. Scanner still flagged it after that: it can't cross-reference a dynamic `useId()` string between two separate JSX elements, only same-element signals — added `aria-label="Balance"` directly on the input to close the gap (redundant with the label click-to-focus behavior, which still works natively).
+- [x] `components/wallet/transaction-form/amount-field.tsx:33` — same fix, `useId()` + `htmlFor`/`id` + `aria-label="Transaction Amount"`.
+- [x] `components/ui/input-group.tsx:54` — click handler missing keyboard handler. False positive/non-issue: the div's `onClick` just refocuses the already-independently-tab-reachable `<input>` inside it (click-target padding, like clicking a `<label>`), already had a biome-ignore with that exact justification — react-doctor's separate engine needed its own suppression (`react-doctor/click-events-have-key-events`), added with justification.
+- [x] `components/wallet/transaction-form/amount-field.tsx:38` — remove `autoFocus`. Deleted the prop and its now-orphaned `biome-ignore` comment.
 
-## Maintainability (16)
+## Maintainability (16) — 8 fixed, 8 accepted as shadcn convention
 
-- [ ] `lib/data/date-presets.ts:76` — unused export `formatDateTriggerLabel`
-- [ ] `lib/services/spend-analysis.ts:59` — unused export
-- [ ] `components/wallet/edit-account-modal.tsx:102` — `formatBalance` rebuilt every render, hoist to module scope
-- [ ] `components/portfolio/add-position-modal.tsx:92` — 506-line component, split up
-- [ ] `components/ui/chart.tsx:28` — React 19: `forwardRef`/`useContext` → `use()`
-- [ ] `components/ui/form.tsx:41` — same
-- [ ] `components/ui/sidebar.tsx:48` — same
-- [ ] `components/analytics/metric-cards.tsx:119` — multiple components in one file
+- [x] `lib/data/date-presets.ts:76` — unused export `formatDateTriggerLabel`. Deleted (only consumer was the re-export below, itself unused).
+- [x] `lib/services/spend-analysis.ts:59` — unused export `aggregateStatus`. Deleted, no callers.
+- [x] `components/wallet/edit-account-modal.tsx:102` — `formatBalance` rebuilt every render. Hoisted to module scope (pure fn, no closure over component state).
+- [x] `components/wallet/date-range-picker.tsx:20` — non-component export (`formatDateTriggerLabel` re-export) breaking Fast Refresh. Removed — nothing imported it.
+- [x] `components/portfolio/add-position-modal.tsx:92` — 506-line component (433 by the scanner's own count). Split into `add-position-modal/{index.tsx,schema.ts,selected-asset-card.tsx,asset-type-selector.tsx,identity-fields.tsx,details-fields.tsx}`; import path unchanged (`./add-position-modal` resolves to the new `index.tsx`). First pass only pulled out two small leaf pieces and left `index.tsx` at 481 lines, which the scanner still flagged as a giant component (433 lines) — went back and pulled the two remaining field groups (portfolio/type/search/name/ticker → `identity-fields.tsx`, quantity/price/currency/date/notes → `details-fields.tsx`) out too. `index.tsx` now 212 lines, `no-giant-component` clear.
+- [x] `components/ui/chart.tsx:28` — React 19: `useContext` → `use()`. No `forwardRef` found in any of the three files; just the context read.
+- [x] `components/ui/form.tsx:41` — same.
+- [x] `components/ui/sidebar.tsx:48` — same.
+
+**Accepted as shadcn convention (not fixing)** — these fight the shadcn/ui component model itself rather than a real defect:
+
+- [ ] `components/ui/badge.tsx:52` — non-component export (`badgeVariants`) alongside component. Splitting breaks re-running `shadcn add` to pull upstream updates; Fast Refresh cost is a single extra remount on edit.
+- [ ] `components/ui/button.tsx:61` — same (`buttonVariants`)
+- [ ] `components/ui/input.tsx:39` — same
+- [ ] `components/ui/tabs.tsx:82` — same
+- [ ] `components/analytics/metric-cards.tsx:119` — multiple components in one file, same grouping pattern already used unflagged in `form.tsx`
 - [ ] `components/analytics/metric-cards.tsx:236` — same
 - [ ] `components/ui/input-group.tsx:46` — same
 - [ ] `components/ui/input-group.tsx:109` — same
-- [ ] `components/ui/badge.tsx:52` — non-component export in component file, breaks Fast Refresh
-- [ ] `components/ui/button.tsx:61` — same
-- [ ] `components/ui/input.tsx:39` — same
-- [ ] `components/ui/tabs.tsx:82` — same
-- [ ] `components/wallet/date-range-picker.tsx:20` — same
 
 ## Order
 
