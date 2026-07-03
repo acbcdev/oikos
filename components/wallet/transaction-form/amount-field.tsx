@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import type { Control } from "react-hook-form";
 import {
   FormControl,
@@ -18,24 +19,28 @@ export function AmountField({
   control: Control<FormValues>;
   currencySymbol: string;
 }) {
+  const amountInputId = useId();
+
   return (
     <FormField
       control={control}
       name="amount"
       render={({ field }) => (
         <FormItem className="space-y-1 text-center py-2 ">
-          <FormLabel className="mx-auto">Transaction Amount *</FormLabel>
+          <FormLabel htmlFor={amountInputId} className="mx-auto">
+            Transaction Amount *
+          </FormLabel>
           <FormControl>
             <div className="flex items-center justify-center gap-2 bg-secondary/60 rounded-xl px-2 mt-2 py-1">
               <span className="text-4xl font-bold text-primary font-display">
                 {currencySymbol}
               </span>
               <input
+                id={amountInputId}
+                aria-label="Transaction Amount"
                 type="text"
                 inputMode="numeric"
                 placeholder="0"
-                // biome-ignore lint/a11y/noAutofocus: <valid use-case>
-                autoFocus
                 value={formatInteger(field.value)}
                 onChange={(e) =>
                   field.onChange(e.target.value.replace(/\D/g, ""))

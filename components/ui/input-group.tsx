@@ -51,6 +51,7 @@ function InputGroupAddon({
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: <for simplicity, we allow click only on the container, not on individual elements>
     // biome-ignore lint/a11y/useSemanticElements: <data role is group, not presentation>
+    // react-doctor-disable-next-line react-doctor/click-events-have-key-events -- the wrapped input is already independently keyboard-focusable via Tab; this onClick is mouse-only click-target padding (like clicking a <label>), not a control of its own
     <div
       role="group"
       data-slot="input-group-addon"

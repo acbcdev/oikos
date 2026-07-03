@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -37,6 +37,12 @@ const currencies = [
   { code: "COP", label: "COP - Colombian Peso" },
 ];
 
+function formatBalance(raw: string): string {
+  if (!raw) return "";
+  const num = parseInt(raw, 10);
+  return isNaN(num) ? "" : num.toLocaleString("en-US");
+}
+
 const accountSchema = z.object({
   name: z
     .string()
@@ -63,6 +69,7 @@ export function EditAccountModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const updateAccount = useWalletStore((s) => s.updateAccount);
+  const balanceInputId = useId();
 
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountSchema),
@@ -98,12 +105,6 @@ export function EditAccountModal({
   });
 
   const symbol = currencySymbol(currency);
-
-  const formatBalance = (raw: string) => {
-    if (!raw) return "";
-    const num = parseInt(raw, 10);
-    return isNaN(num) ? "" : num.toLocaleString("en-US");
-  };
 
   const onSubmit = (data: AccountFormValues) => {
     updateAccount(account.id, {
@@ -216,13 +217,15 @@ export function EditAccountModal({
               name="balance"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Balance</FormLabel>
+                  <FormLabel htmlFor={balanceInputId}>Balance</FormLabel>
                   <FormControl>
                     <div className="flex items-center bg-white/5 rounded-lg px-4 py-3 focus-within:ring-1 focus-within:ring-primary">
                       <span className="text-sm font-display font-bold text-muted-foreground mr-2">
                         {symbol}
                       </span>
                       <input
+                        id={balanceInputId}
+                        aria-label="Balance"
                         type="text"
                         inputMode="numeric"
                         placeholder="0.00"

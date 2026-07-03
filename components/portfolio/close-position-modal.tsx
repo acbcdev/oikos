@@ -84,7 +84,10 @@ export function ClosePositionModal({
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-display font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                <label
+                  htmlFor="sellPrice"
+                  className="text-[11px] font-display font-bold uppercase tracking-[0.15em] text-muted-foreground"
+                >
                   Sell Price / Unit
                 </label>
                 <Controller
@@ -93,6 +96,7 @@ export function ClosePositionModal({
                   rules={{ required: true }}
                   render={({ field }) => (
                     <NumberInput
+                      id="sellPrice"
                       size="lg"
                       prefix={position.currency}
                       min={0}
@@ -105,7 +109,10 @@ export function ClosePositionModal({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-display font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                <label
+                  htmlFor="sellDate"
+                  className="text-[11px] font-display font-bold uppercase tracking-[0.15em] text-muted-foreground"
+                >
                   Sale Date
                 </label>
                 <Controller
@@ -114,6 +121,7 @@ export function ClosePositionModal({
                   rules={{ required: true }}
                   render={({ field }) => (
                     <DatePicker
+                      id="sellDate"
                       value={field.value}
                       onChange={field.onChange}
                       className="w-full"

@@ -16,6 +16,7 @@ interface DatePickerProps {
   value?: string; // ISO date YYYY-MM-DD
   onChange: (value: string) => void;
   // trigger
+  id?: string;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
@@ -36,6 +37,7 @@ interface DatePickerProps {
 export function DatePicker({
   value,
   onChange,
+  id,
   placeholder = "Pick a date",
   disabled,
   className,
@@ -75,8 +77,10 @@ export function DatePicker({
       <PopoverTrigger
         disabled={disabled}
         render={
+          // react-doctor-disable-next-line react-doctor/control-has-associated-label
           <button
             type="button"
+            id={id}
             className={cn(
               "w-full flex items-center gap-3 bg-secondary/60 rounded-xl px-4 py-3 min-h-11.5 text-sm font-body text-left outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed",
               className,
