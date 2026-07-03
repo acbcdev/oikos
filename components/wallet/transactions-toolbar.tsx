@@ -80,9 +80,12 @@ export function TransactionsToolbar({
     selectedTypes.length;
   const hasDateFilter = dateFrom !== null || dateTo !== null;
 
+  const accountById = new Map(accounts.map((a) => [a.id, a]));
+  const categoryById = new Map(CATEGORIES.map((c) => [c.id, c]));
+
   const chips: { key: string; label: string; onRemove: () => void }[] = [];
   for (const id of selectedAccountIds) {
-    const acc = accounts.find((a) => a.id === id);
+    const acc = accountById.get(id);
     chips.push({
       key: `account:${id}`,
       label: acc?.institution ?? id,
@@ -90,7 +93,7 @@ export function TransactionsToolbar({
     });
   }
   for (const catId of selectedCategories) {
-    const catName = CATEGORIES.find((c) => c.id === catId)?.name ?? catId;
+    const catName = categoryById.get(catId)?.name ?? catId;
     chips.push({
       key: `cat:${catId}`,
       label: catName,
