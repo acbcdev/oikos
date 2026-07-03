@@ -18,11 +18,10 @@ export interface Position {
   currentPrice: number;
   currency: string;
   purchaseDate: string; // ISO date YYYY-MM-DD
-  livePrice?: boolean;
   notes?: string;
   // Set when a position is closed/sold — moves it to "Previous Sales" tab
-  soldAt?: string;      // ISO date YYYY-MM-DD
-  soldPrice?: number;   // price per unit at time of sale
+  soldAt?: string; // ISO date YYYY-MM-DD
+  soldPrice?: number; // price per unit at time of sale
 }
 
 export function computePnL(position: Position): {

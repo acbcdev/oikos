@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import {
   Search,
@@ -9,6 +9,7 @@ import {
   TrendingDown,
   ChevronDown,
   ArrowUpDown,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
@@ -21,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { computePnL } from "@/lib/data/portfolio";
 import { useInvestmentStore } from "@/lib/store/investment-store";
+import { usePriceRefresh } from "@/lib/hooks/use-price-refresh";
 import { useMetrics } from "@/lib/hooks/use-metrics";
 import {
   totalValue,
@@ -40,10 +42,14 @@ function PortfolioGroup({
   portfolioId,
   label,
   positions,
+  refreshingIds,
+  onRefresh,
 }: {
   portfolioId: string;
   label: string;
   positions: GroupedPosition[];
+  refreshingIds: Set<string>;
+  onRefresh: (position: GroupedPosition) => void;
 }) {
   const [open, setOpen] = useState(true);
   const allPositions = useInvestmentStore((s) => s.positions);
@@ -121,7 +127,12 @@ function PortfolioGroup({
         <ul className="flex flex-col gap-3 px-4 pt-2 pb-4">
           {positions.map((pos) => (
             <li key={pos.id}>
-              <PositionRow position={pos} portfolioValue={metrics.totalValue} />
+              <PositionRow
+                position={pos}
+                portfolioValue={metrics.totalValue}
+                refreshing={refreshingIds.has(pos.id)}
+                onRefresh={onRefresh}
+              />
             </li>
           ))}
         </ul>
@@ -129,6 +140,8 @@ function PortfolioGroup({
     </div>
   );
 }
+
+const AUTO_REFRESH_MS = 60_000;
 
 const TABS = ["Current Positions", "Previous Sales"] as const;
 type Tab = (typeof TABS)[number];
@@ -161,6 +174,14 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
 
   const portfolios = useInvestmentStore((s) => s.portfolios);
   const allPositions = useInvestmentStore((s) => s.positions);
+  const { refresh, refreshingIds } = usePriceRefresh();
+
+  useEffect(() => {
+    const id = setInterval(() => refresh(allPositions), AUTO_REFRESH_MS);
+    return () => clearInterval(id);
+    // Only reruns when the position list itself changes, not on price ticks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allPositions.length]);
 
   const filteredPositions = useMemo(() => {
     const isCurrent = activeTab === "Current Positions";
@@ -285,6 +306,20 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
+        <Button
+          variant="secondary"
+          size="xl"
+          className="gap-2"
+          onClick={() => refresh(allPositions)}
+          disabled={refreshingIds.size > 0}
+        >
+          <RefreshCw
+            size={15}
+            className={refreshingIds.size > 0 ? "animate-spin" : ""}
+          />
+          Refresh All
+        </Button>
+
         <Button onClick={() => setModalOpen(true)} size="xl">
           <Plus size={16} />
           Add Position
@@ -305,6 +340,8 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
             portfolioId={portfolioId}
             label={label}
             positions={positions}
+            refreshingIds={refreshingIds}
+            onRefresh={(p) => refresh([p])}
           />
         ))}
 

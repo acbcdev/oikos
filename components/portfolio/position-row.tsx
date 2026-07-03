@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   BarChart3,
   TrendingUp,
-  TrendingDown,
   Bitcoin,
   Building2,
   Landmark,
@@ -19,14 +18,16 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useInvestmentStore } from "@/lib/store/investment-store";
 import { computePnL } from "@/lib/data/portfolio";
 import { fmt } from "@/lib/utils/currency";
-import { refreshPositionPrice } from "@/lib/services/prices";
+import { hasLivePrice } from "@/lib/services/prices";
 import type { AssetType, Position } from "@/lib/data/portfolio";
 import { AssetLogo } from "./asset-logo";
 import { AddPositionModal } from "./add-position-modal";
@@ -36,16 +37,36 @@ const assetTypeConfig: Record<
   AssetType,
   { icon: React.ElementType; bg: string; text: string; bar: string }
 > = {
-  stock: { icon: BarChart3, bg: "bg-blue-500/15", text: "text-blue-400", bar: "bg-blue-400" },
-  etf: { icon: TrendingUp, bg: "bg-purple-500/15", text: "text-purple-400", bar: "bg-purple-400" },
-  crypto: { icon: Bitcoin, bg: "bg-primary/15", text: "text-primary", bar: "bg-primary" },
+  stock: {
+    icon: BarChart3,
+    bg: "bg-blue-500/15",
+    text: "text-blue-400",
+    bar: "bg-blue-400",
+  },
+  etf: {
+    icon: TrendingUp,
+    bg: "bg-purple-500/15",
+    text: "text-purple-400",
+    bar: "bg-purple-400",
+  },
+  crypto: {
+    icon: Bitcoin,
+    bg: "bg-primary/15",
+    text: "text-primary",
+    bar: "bg-primary",
+  },
   "real-estate": {
     icon: Building2,
     bg: "bg-orange-500/15",
     text: "text-orange-400",
     bar: "bg-orange-400",
   },
-  bond: { icon: Landmark, bg: "bg-chart-2/15", text: "text-chart-2", bar: "bg-chart-2" },
+  bond: {
+    icon: Landmark,
+    bg: "bg-chart-2/15",
+    text: "text-chart-2",
+    bar: "bg-chart-2",
+  },
 };
 
 const assetTypeLabel: Record<AssetType, string> = {
@@ -59,16 +80,18 @@ const assetTypeLabel: Record<AssetType, string> = {
 export function PositionRow({
   position,
   portfolioValue,
+  refreshing,
+  onRefresh,
 }: {
   position: Position;
   portfolioValue?: number;
+  refreshing: boolean;
+  onRefresh: (position: Position) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const removePosition = useInvestmentStore((s) => s.removePosition);
-  const updatePosition = useInvestmentStore((s) => s.updatePosition);
 
   const cfg = assetTypeConfig[position.type];
   const { gain, gainPct, costBasis, currentValue, isRealized } =
@@ -78,21 +101,6 @@ export function PositionRow({
     !isRealized && portfolioValue && portfolioValue > 0
       ? (currentValue / portfolioValue) * 100
       : null;
-
-  async function handleRefreshPrice() {
-    if (refreshing) return;
-    setRefreshing(true);
-    try {
-      const price = await refreshPositionPrice(position);
-      if (price !== null) {
-        updatePosition(position.id, { currentPrice: price });
-      }
-    } catch {
-      // Silently fail — user can retry
-    } finally {
-      setRefreshing(false);
-    }
-  }
 
   return (
     <>
@@ -141,7 +149,9 @@ export function PositionRow({
             )}
           </button>
 
-          <output className="text-right shrink-0">
+          <output
+            className={`text-right shrink-0 ${refreshing ? "animate-pulse opacity-60" : ""}`}
+          >
             <p className="text-[15px] font-display font-bold tabular-nums text-foreground">
               {fmt(currentValue, position.currency)}
             </p>
@@ -159,48 +169,52 @@ export function PositionRow({
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button variant="ghost" size="icon" className="shrink-0" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0"
+                  aria-label="Position actions"
+                />
               }
             >
               <MoreHorizontal size={16} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
-              {position.livePrice && (
-                <>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                {hasLivePrice(position) && (
                   <DropdownMenuItem
-                    onClick={handleRefreshPrice}
+                    onClick={() => onRefresh(position)}
                     disabled={refreshing}
                   >
                     <RefreshCw
                       size={13}
                       className={refreshing ? "animate-spin" : ""}
                     />
-                    Refresh Price
+                    Refresh
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
-              <DropdownMenuItem onClick={() => setEditOpen(true)}>
-                <Pencil size={13} />
-                Edit
-              </DropdownMenuItem>
-              {!position.soldAt && (
-                <>
-                  <DropdownMenuSeparator />
+                )}
+                <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                  <Pencil size={13} />
+                  Edit
+                </DropdownMenuItem>
+                {!position.soldAt && (
                   <DropdownMenuItem onClick={() => setCloseOpen(true)}>
                     <CircleX size={13} />
-                    Close Position
+                    Close
                   </DropdownMenuItem>
-                </>
-              )}
+                )}
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => removePosition(position.id)}
-              >
-                <Trash2 size={13} />
-                Delete
-              </DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => removePosition(position.id)}
+                >
+                  <Trash2 size={13} />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -311,12 +325,12 @@ export function PositionRow({
               )}
             </dl>
 
-            {position.livePrice && (
+            {hasLivePrice(position) && (
               <Button
                 variant="secondary"
                 size="sm"
                 className="gap-2 mt-4"
-                onClick={handleRefreshPrice}
+                onClick={() => onRefresh(position)}
                 disabled={refreshing}
               >
                 <RefreshCw

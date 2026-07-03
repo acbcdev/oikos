@@ -32,7 +32,9 @@ export async function fetchStockPrice(ticker: string): Promise<number> {
 // --- Crypto (proxied through /api/price/crypto to hide CoinGecko key) ---
 
 export async function fetchCryptoPrice(ticker: string): Promise<number> {
-  const res = await fetch(`/api/price/crypto?ticker=${encodeURIComponent(ticker)}`);
+  const res = await fetch(
+    `/api/price/crypto?ticker=${encodeURIComponent(ticker)}`,
+  );
   const data = await res.json();
 
   if (!res.ok) {
@@ -44,11 +46,17 @@ export async function fetchCryptoPrice(ticker: string): Promise<number> {
 
 // --- Unified refresh — picks the right fetcher based on position type ---
 
+export function hasLivePrice(position: Position): boolean {
+  return (
+    position.type === "stock" ||
+    position.type === "etf" ||
+    position.type === "crypto"
+  );
+}
+
 export async function refreshPositionPrice(
   position: Position,
 ): Promise<number | null> {
-  if (!position.livePrice) return null;
-
   switch (position.type) {
     case "stock":
     case "etf":

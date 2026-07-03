@@ -125,8 +125,22 @@ export function AddPositionModal({
     },
   });
 
-  const watchedType = useWatch({ control: form.control, name: "type", defaultValue: "stock" });
+  const watchedType = useWatch({
+    control: form.control,
+    name: "type",
+    defaultValue: "stock",
+  });
   const isSearchable = SEARCHABLE_TYPES.includes(watchedType);
+
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setSelectedAsset(null);
+      setComboboxKey((k) => k + 1);
+      setFetchedCurrentPrice(position?.currentPrice ?? null);
+    }
+  }
 
   useEffect(() => {
     if (open) {
@@ -147,9 +161,6 @@ export function AddPositionModal({
           position?.purchaseDate ?? new Date().toISOString().split("T")[0],
         notes: position?.notes ?? "",
       });
-      setSelectedAsset(null);
-      setComboboxKey((k) => k + 1);
-      setFetchedCurrentPrice(position?.currentPrice ?? null);
     }
   }, [
     open,
@@ -157,6 +168,7 @@ export function AddPositionModal({
     defaultPortfolioId,
     lastUsedPortfolioId,
     portfolios,
+    form,
   ]);
 
   async function handleAssetSelect(asset: AssetSearchResult) {
@@ -172,7 +184,7 @@ export function AddPositionModal({
     }
 
     // Move focus forward so Enter continues the form, not the search
-    form.setFocus("quantity");
+    form.setFocus("buyPrice");
 
     // Then fetch a fresher quote in the background
     try {
@@ -447,28 +459,6 @@ export function AddPositionModal({
             <div className="grid grid-cols-3 gap-3">
               <FormField
                 control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-bold tracking-widest uppercase font-display text-muted-foreground">
-                      {watchedType === "real-estate" ? "Units" : "Quantity"}
-                    </FormLabel>
-                    <FormControl>
-                      <NumberInput
-                        {...field}
-                        size="lg"
-                        min={0}
-                        placeholder="10"
-                        onValueChange={(v) => field.onChange(v)}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-xs text-negative" />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="buyPrice"
                 render={({ field }) => (
                   <FormItem>
@@ -483,6 +473,28 @@ export function AddPositionModal({
                         size="lg"
                         min={0}
                         placeholder="150.00"
+                        onValueChange={(v) => field.onChange(v)}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs text-negative" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold tracking-widest uppercase font-display text-muted-foreground">
+                      {watchedType === "real-estate" ? "Units" : "Quantity"}
+                    </FormLabel>
+                    <FormControl>
+                      <NumberInput
+                        {...field}
+                        size="lg"
+                        min={0}
+                        placeholder="10"
                         onValueChange={(v) => field.onChange(v)}
                       />
                     </FormControl>

@@ -54,7 +54,7 @@ export function CreatePortfolioModal({
         description: portfolio?.description ?? "",
       });
     }
-  }, [open, portfolio]);
+  }, [open, portfolio, form]);
 
   function onSubmit(values: FormValues) {
     if (isEditing) {
@@ -90,7 +90,10 @@ export function CreatePortfolioModal({
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="p-6 space-y-4"
+          >
             <FormField
               control={form.control}
               name="name"
