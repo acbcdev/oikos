@@ -90,37 +90,35 @@ export function TransactionsPane({
 
     const q = query.toLowerCase().trim();
 
-    return transactionGroups
-      .map((group) => ({
-        ...group,
-        transactions: group.transactions.filter((t) => {
-          if (
-            q &&
-            !t.description.toLowerCase().includes(q) &&
-            !t.categoryId.toLowerCase().includes(q)
-          )
-            return false;
-          if (
-            selectedAccountIds.length > 0 &&
-            !selectedAccountIds.includes(t.accountId)
-          )
-            return false;
-          if (
-            selectedCategories.length > 0 &&
-            !selectedCategories.includes(t.categoryId)
-          )
-            return false;
-          if (
-            selectedTypes.length > 0 &&
-            !selectedTypes.includes(txTypeFromCategoryId(t.categoryId))
-          )
-            return false;
-          if (dateFrom && t.date < dateFrom) return false;
-          if (dateTo && t.date > dateTo) return false;
-          return true;
-        }),
-      }))
-      .filter((g) => g.transactions.length > 0);
+    return transactionGroups.flatMap((group) => {
+      const transactions = group.transactions.filter((t) => {
+        if (
+          q &&
+          !t.description.toLowerCase().includes(q) &&
+          !t.categoryId.toLowerCase().includes(q)
+        )
+          return false;
+        if (
+          selectedAccountIds.length > 0 &&
+          !selectedAccountIds.includes(t.accountId)
+        )
+          return false;
+        if (
+          selectedCategories.length > 0 &&
+          !selectedCategories.includes(t.categoryId)
+        )
+          return false;
+        if (
+          selectedTypes.length > 0 &&
+          !selectedTypes.includes(txTypeFromCategoryId(t.categoryId))
+        )
+          return false;
+        if (dateFrom && t.date < dateFrom) return false;
+        if (dateTo && t.date > dateTo) return false;
+        return true;
+      });
+      return transactions.length > 0 ? [{ ...group, transactions }] : [];
+    });
   }, [
     query,
     transactionGroups,
