@@ -51,13 +51,3 @@ export function analyzeSpend(actual: number, limit: number): SpendAnalysis {
 export function isHighSpend(actual: number, limit: number): boolean {
   return limit > 0 ? actual > limit : actual > 1000;
 }
-
-/**
- * Aggregate status from multiple spend analyses.
- * Returns the "worst" status: over > at-risk > on-track
- */
-export function aggregateStatus(...statuses: SpendStatus[]): SpendStatus {
-  if (statuses.includes("over")) return "over";
-  if (statuses.includes("at-risk")) return "at-risk";
-  return "on-track";
-}

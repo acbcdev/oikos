@@ -17,8 +17,6 @@ import {
 } from "@/lib/data/date-presets";
 import { Button } from "@/components/ui/button";
 
-export { formatDateTriggerLabel } from "@/lib/data/date-presets";
-
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface DateRangePickerProps {

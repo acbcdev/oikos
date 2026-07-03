@@ -72,18 +72,3 @@ export const TABS: { id: ViewMode; label: string }[] = [
   { id: "months", label: "Months" },
   { id: "years", label: "Years" },
 ];
-
-export function formatDateTriggerLabel(
-  dateFrom: string | null,
-  dateTo: string | null,
-  presetLabel: string | null,
-): string {
-  if (presetLabel) return presetLabel;
-  if (!dateFrom && !dateTo) return "Date";
-  const fmt = (iso: string) => Dater.from(iso).label();
-  if (dateFrom && dateTo && dateFrom !== dateTo)
-    return `${fmt(dateFrom)} – ${fmt(dateTo)}`;
-  if (dateFrom) return fmt(dateFrom);
-  if (dateTo) return fmt(dateTo);
-  return "Date";
-}
