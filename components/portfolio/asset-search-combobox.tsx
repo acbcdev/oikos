@@ -44,7 +44,7 @@ export function AssetSearchCombobox({ onSelect }: AssetSearchComboboxProps) {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   // Map ticker → full result so we can look up on selection
-  const resultMap = useRef(new Map<string, AssetSearchResult>());
+  const [resultMap] = useState(() => new Map<string, AssetSearchResult>());
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -67,8 +67,8 @@ export function AssetSearchCombobox({ onSelect }: AssetSearchComboboxProps) {
         );
         const data = await res.json();
         const fetched: AssetSearchResult[] = data.results ?? [];
-        resultMap.current.clear();
-        fetched.forEach((r) => resultMap.current.set(r.ticker, r));
+        resultMap.clear();
+        fetched.forEach((r) => resultMap.set(r.ticker, r));
         setResults(fetched);
       } catch {
         setResults([]);
@@ -80,7 +80,7 @@ export function AssetSearchCombobox({ onSelect }: AssetSearchComboboxProps) {
 
   function handleValueChange(ticker: string | null) {
     if (!ticker) return;
-    const asset = resultMap.current.get(ticker);
+    const asset = resultMap.get(ticker);
     if (asset) onSelect(asset);
   }
 
