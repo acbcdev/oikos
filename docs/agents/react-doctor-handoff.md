@@ -6,28 +6,33 @@ Re-run before/after fixes: `npx react-doctor@latest --verbose --scope changed`
 
 ## Security (3) — fix first
 
-- [ ] `package.json` — `next@16.1.6` has CVE-2026-23870 (RSC DoS). Bump `next@16.2.6+`.
-- [ ] `pnpm-workspace.yaml` — add `minimumReleaseAge: 10080`
-- [ ] `pnpm-workspace.yaml` — add `trustPolicy: no-downgrade`
+- [x] `package.json` — `next@16.1.6` has CVE-2026-23870 (RSC DoS). Bumped to `next@16.2.6`. Typecheck + `next build` pass.
+- [x] `pnpm-workspace.yaml` — added `minimumReleaseAge: 10080`
+- [x] `pnpm-workspace.yaml` — added `trustPolicy: no-downgrade` + `trustPolicyIgnoreAfter: 129600` (90d — scopes downgrade checks to the actual attack window; without it, old stable transitive deps like `undici-types@6.21.0`/`semver@6.3.1`/`reselect@5.1.1` false-positive as "takeovers" just for predating npm provenance). Verified each flagged package's maintainers/publish history before adding the exception — no takeover indicators.
+  - Side effect: `prettier@^3.9.4` failed `minimumReleaseAge` (published 2 days old, no older patch in range). Relaxed to `^3.8.4` (mature).
 
-## Bugs (16)
+## Bugs (16) — done, `--category bugs` scan is clean
 
-- [ ] `components/portfolio/positions-pane.tsx:184` — stale deps (`refresh, allPositions`)
-- [ ] `components/wallet/transaction-form/index.tsx:102` — stale deps; also both files' `eslint-disable` comments say `react-hooks/exhaustive-deps`, must add `react-doctor/exhaustive-deps` too
-- [ ] `components/tracker/savings-goal-form.tsx:188` — `new Date()` in JSX, hydration mismatch
-- [ ] `components/wallet/transaction-form/date-field.tsx:32` — same
-- [ ] `components/portfolio/asset-logo.tsx:29` — `<img>` → `next/image`
-- [ ] `components/portfolio/position-row.tsx:109` — button missing `type`
-- [ ] `components/portfolio/positions-pane.tsx:68` — button missing `type`
-- [ ] `components/portfolio/positions-pane.tsx:259` — button missing `type`
-- [ ] `components/tracker/tracker-layout.tsx:134` — button missing `type`
-- [ ] `components/tracker/tracker-layout.tsx:145` — button missing `type`
-- [ ] `components/portfolio/add-position-modal.tsx:146` — event logic in effect, move to handler
-- [ ] `components/portfolio/create-portfolio-modal.tsx:51` — same
-- [ ] `components/ui/calendar.tsx:201` — same
-- [ ] `components/wallet/edit-account-modal.tsx:79` — same
-- [ ] `hooks/use-mobile.ts:16` — state init from mount effect, pass initial value directly / `useSyncExternalStore`
-- [ ] `components/wallet/wallet-layout.tsx:23` — 7 separate `useState` → `useReducer`
+- [x] `components/portfolio/positions-pane.tsx:184` — stale deps intentional; `eslint-disable-next-line react-hooks/exhaustive-deps` only silenced eslint's own rule, not react-doctor's separate oxlint-based engine. Both tools require their disable comment on their own literal target line, which can't both be the line directly above — solved with `// react-doctor-disable-next-line react-doctor/exhaustive-deps` above the closing `}, [deps])` and a trailing `// eslint-disable-line react-hooks/exhaustive-deps` on that same line.
+- [x] `components/wallet/transaction-form/index.tsx:102` — same fix.
+- [x] `components/tracker/savings-goal-form.tsx:188` — `minDate={new Date()}` in JSX. Deferred to `useState(undefined) + useEffect(() => setMinDeadline(new Date()), [])` so the deadline min-bound only exists client-side. That trips both `react-doctor/no-initialize-state` and eslint's `react-hooks/set-state-in-effect` — suppressed both (same adjacent-comment + trailing-comment technique as above): a lazy `useState` initializer would run `new Date()` during SSR too and reintroduce the exact mismatch being fixed.
+- [x] `components/wallet/transaction-form/date-field.tsx:32` — `maxDate={new Date()}` was redundant: `DatePicker` already defaults `maxDate` to `new Date()` when the prop is omitted. Deleted the prop, zero behavior change.
+- [x] `components/portfolio/asset-logo.tsx:29` — kept `<img>` (user call: native `loading="lazy"`/`decoding="async"` over `next/image`'s optimization pipeline for small third-party ticker logos). Suppressed both rules with justification.
+- [x] `components/portfolio/position-row.tsx:109` — `type="button"`
+- [x] `components/portfolio/positions-pane.tsx:68` — `type="button"`
+- [x] `components/portfolio/positions-pane.tsx:259` — `type="button"`
+- [x] `components/tracker/tracker-layout.tsx:134` — `type="button"`
+- [x] `components/tracker/tracker-layout.tsx:145` — `type="button"`
+- [x] `components/portfolio/add-position-modal.tsx:146` — merged the `form.reset` effect into the file's existing "prevOpen state during render" block next to it; deleted the effect and the now-unused `useEffect` import.
+- [x] `components/portfolio/create-portfolio-modal.tsx:51` — added the same prevOpen-during-render pattern (didn't have one yet).
+- [x] `components/ui/calendar.tsx:201` — false positive per the rule's own carve-out: `modifiers.focused` is react-day-picker's internal roving-tabindex state, not a local event this component owns a handler for. Suppressed with justification, comment placed immediately above the flagged line (no equivalent eslint rule installed here, so no dual-comment dance needed).
+- [x] `components/wallet/edit-account-modal.tsx:79` — same prevOpen pattern as create-portfolio-modal.
+- [x] `hooks/use-mobile.ts:16` — rewrote with `useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)`, dropped the mount effect entirely.
+- [x] `components/wallet/wallet-layout.tsx:23` — grouped the 7 filter-related `useState`s (already commented as one block) into one `useReducer` with an object-map dispatch (no `switch`, per feedback); `hydrated`/`linkModalOpen` stayed as their own `useState` since they're unrelated to the filter state.
+
+**Suppression-comment gotcha worth remembering**: `react-doctor-disable-next-line` and eslint's `-next-line` directives each require their comment on the literal line directly preceding the target — only one comment can occupy that line, so stacking both `-next-line` directives fails one of them (confirmed via `npx react-doctor@latest why <file>:<line>`, which also surfaces adjacency-gap errors). Fix: react-doctor's comment goes on the line directly above the target, eslint's goes as a _trailing_ `eslint-disable-line` comment on the target line itself — both are then simultaneously adjacent to what they need to suppress.
+
+Verified via `npx react-doctor@latest why <file>:<line>` before/after each fix, a final `--category bugs` JSON scan (0 diagnostics), `pnpm lint` and `pnpm typecheck` (both clean), and a full `--scope changed --verbose` scan (86/100, 0 errors, the 5 remaining warnings are pre-existing Performance/Accessibility/Maintainability items already tracked below, not new regressions).
 
 ## Performance (25)
 
