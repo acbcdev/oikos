@@ -1,17 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
-import { Cell, Pie, PieChart, Sector } from "recharts";
-import type { PieSectorDataItem } from "recharts/types/polar/Pie";
-import {
-  ChartContainer,
-  ChartTooltip,
-  type ChartConfig,
-} from "@/components/ui/chart";
+import type { ChartConfig } from "@/components/ui/chart";
 import { fmt } from "@/lib/utils/currency";
+
+const BurnDistributionChart = dynamic(
+  () => import("@/components/analytics/burn-distribution-chart"),
+  { ssr: false },
+);
 
 const CATEGORY_STYLE: Record<
   string,
@@ -45,32 +45,6 @@ const CATEGORY_STYLE: Record<
 
 const FALLBACK_COLORS = ["#94a3b8", "#64748b", "#475569", "#334155"];
 
-function renderActiveShape(props: PieSectorDataItem) {
-  const {
-    cx = 0,
-    cy = 0,
-    innerRadius = 0,
-    outerRadius = 0,
-    startAngle,
-    endAngle,
-    fill,
-  } = props;
-  return (
-    <g>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={(innerRadius as number) - 4}
-        outerRadius={(outerRadius as number) + 8}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-        opacity={1}
-      />
-    </g>
-  );
-}
-
 interface BurnDistributionProps {
   categoryBreakdown: Array<{ label: string; amount: number; percent: number }>;
   totalCategorySpend: number;
@@ -97,11 +71,6 @@ export function BurnDistribution({
         };
         return { ...cat, ...style };
       });
-
-  const chartData = categories.map((c) => ({
-    name: c.label,
-    value: c.percent,
-  }));
 
   const chartConfig = Object.fromEntries(
     categories.map((c) => [
@@ -140,71 +109,13 @@ export function BurnDistribution({
         <div className="flex-1 flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
           {/* Donut chart */}
           <div className="relative flex flex-col items-center w-full lg:w-auto shrink-0">
-            <ChartContainer config={chartConfig} className="w-70 h-70">
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={82}
-                  outerRadius={112}
-                  paddingAngle={chartData.length > 1 ? 3 : 0}
-                  dataKey="value"
-                  activeIndex={activeIndex}
-                  activeShape={renderActiveShape}
-                  onMouseEnter={(_, index) => setActiveIndex(index)}
-                  onMouseLeave={() => setActiveIndex(undefined)}
-                  strokeWidth={0}
-                >
-                  {chartData.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={categories[index].color}
-                      opacity={
-                        activeIndex === undefined || activeIndex === index
-                          ? 1
-                          : 0.25
-                      }
-                      style={{
-                        transition: "opacity 0.2s ease",
-                        cursor: "pointer",
-                      }}
-                    />
-                  ))}
-                </Pie>
-                <ChartTooltip
-                  wrapperStyle={{ zIndex: 100 }}
-                  content={({ active, payload }) => {
-                    if (!active || !payload?.length) return null;
-                    const entry = payload[0];
-                    const cat = categories.find((c) => c.label === entry.name);
-                    if (!cat) return null;
-                    return (
-                      <div className="bg-card border border-border/50 px-3 py-2 rounded-xl shadow-xl">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div
-                            className="size-2 rounded-full shrink-0"
-                            style={{ background: cat.color }}
-                          />
-                          <span className="font-display font-bold text-xs text-foreground">
-                            {cat.label}
-                          </span>
-                        </div>
-                        <div
-                          className="font-display font-bold text-sm"
-                          style={{ color: cat.color }}
-                        >
-                          {fmt(cat.amount, displayCurrency)}
-                          <span className="text-muted-foreground font-normal text-xs ml-2">
-                            {cat.percent}%
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  }}
-                />
-              </PieChart>
-            </ChartContainer>
+            <BurnDistributionChart
+              categories={categories}
+              chartConfig={chartConfig}
+              displayCurrency={displayCurrency}
+              activeIndex={activeIndex}
+              setActiveIndex={setActiveIndex}
+            />
 
             <div
               className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
@@ -223,19 +134,15 @@ export function BurnDistribution({
           <div className="flex-1 w-full flex flex-col gap-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {categories.map((cat, i) => (
-                <div
+                <button
                   key={cat.label}
-                  role="button"
-                  tabIndex={0}
+                  type="button"
                   aria-label={`${cat.label}: ${cat.percent}%`}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-default border border-transparent hover:bg-accent/40 hover:border-white/8"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-default border border-transparent hover:bg-accent/40 hover:border-white/8 bg-transparent text-left w-full"
                   onMouseEnter={() => setActiveIndex(i)}
                   onMouseLeave={() => setActiveIndex(undefined)}
                   onFocus={() => setActiveIndex(i)}
                   onBlur={() => setActiveIndex(undefined)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") setActiveIndex(i);
-                  }}
                 >
                   <div
                     className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -258,7 +165,7 @@ export function BurnDistribution({
                       {cat.type}
                     </span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
 
