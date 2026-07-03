@@ -43,6 +43,7 @@ interface NumberInputProps
   prefix?: string;
   onValueChange?: (value: string) => void;
   format?: boolean;
+  ref?: React.Ref<HTMLInputElement>;
 }
 
 export function NumberInput({
@@ -57,9 +58,17 @@ export function NumberInput({
   onChange,
   disabled,
   format = true,
+  ref,
   ...props
 }: NumberInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+
+  function setRefs(node: HTMLInputElement | null) {
+    inputRef.current = node;
+    if (typeof ref === "function") ref(node);
+    else if (ref)
+      (ref as React.RefObject<HTMLInputElement | null>).current = node;
+  }
 
   function clamp(n: number) {
     const lo = min !== undefined ? Number(min) : -Infinity;
@@ -115,7 +124,7 @@ export function NumberInput({
 
       <input
         {...props}
-        ref={inputRef}
+        ref={setRefs}
         type={format ? "text" : "number"}
         inputMode={format ? "decimal" : undefined}
         step={format ? undefined : step}
