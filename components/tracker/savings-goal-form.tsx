@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -68,6 +68,13 @@ export function SavingsGoalForm({
     resolver: zodResolver(goalSchema),
     defaultValues: empty(),
   });
+
+  // Deadline can't be in the past. Deliberately NOT a lazy useState initializer —
+  // that would run new Date() on the server too and reintroduce the exact hydration
+  // mismatch this defers past mount to avoid.
+  const [minDeadline, setMinDeadline] = useState<Date | undefined>(undefined);
+  // react-doctor-disable-next-line react-doctor/no-initialize-state
+  useEffect(() => setMinDeadline(new Date()), []); // eslint-disable-line react-hooks/set-state-in-effect -- mount-only, client-only value, see comment above
 
   useEffect(() => {
     if (!open) return;
@@ -185,7 +192,7 @@ export function SavingsGoalForm({
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Pick a deadline"
-                  minDate={new Date()}
+                  minDate={minDeadline}
                   maxDate={null}
                   side="top"
                 />

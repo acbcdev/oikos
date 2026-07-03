@@ -26,11 +26,7 @@ export function DateField({
         <FormItem>
           <FormLabel>Date {required && "*"}</FormLabel>
           <FormControl>
-            <DatePicker
-              value={field.value}
-              onChange={field.onChange}
-              maxDate={new Date()}
-            />
+            <DatePicker value={field.value} onChange={field.onChange} />
           </FormControl>
           <FormMessage />
         </FormItem>
