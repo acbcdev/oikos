@@ -107,7 +107,7 @@ export function DateRangePicker({
   const [viewMonth, setViewMonth] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), 1),
   );
-  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewYear, setViewYear] = useState(() => today.getFullYear());
   const [viewDecadeStart, setViewDecadeStart] = useState(
     Math.floor(today.getFullYear() / 10) * 10,
   );
