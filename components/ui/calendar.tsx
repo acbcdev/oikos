@@ -198,6 +198,9 @@ function CalendarDayButton({
 
   const ref = React.useRef<HTMLButtonElement>(null);
   React.useEffect(() => {
+    // `modifiers.focused` is react-day-picker's internal roving-tabindex state —
+    // there's no handler we own to move this into, it just needs to sync to the DOM.
+    // react-doctor-disable-next-line react-doctor/no-event-handler
     if (modifiers.focused) ref.current?.focus();
   }, [modifiers.focused]);
 
