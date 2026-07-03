@@ -98,8 +98,8 @@ export function TransactionForm({
         description: "",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional, resets only on open
-  }, [open]);
+    // react-doctor-disable-next-line react-doctor/exhaustive-deps
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps -- intentional, resets only on open
 
   const type = useWatch({
     control: form.control,

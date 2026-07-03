@@ -180,8 +180,8 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
     const id = setInterval(() => refresh(allPositions), AUTO_REFRESH_MS);
     return () => clearInterval(id);
     // Only reruns when the position list itself changes, not on price ticks.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allPositions.length]);
+    // react-doctor-disable-next-line react-doctor/exhaustive-deps
+  }, [allPositions.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredPositions = useMemo(() => {
     const isCurrent = activeTab === "Current Positions";
