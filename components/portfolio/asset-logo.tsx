@@ -25,10 +25,14 @@ export function AssetLogo({
       aria-hidden="true"
     >
       {showLogo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        // Plain <img> on purpose: native lazy-loading covers this, no need for
+        // next/image's optimization pipeline on small third-party ticker logos.
+        // react-doctor-disable-next-line react-doctor/nextjs-no-img-element
+        <img // eslint-disable-line @next/next/no-img-element
           src={`https://assets.parqet.com/logos/symbol/${ticker}?format=png&size=48`}
           alt=""
+          loading="lazy"
+          decoding="async"
           className="size-full object-contain"
           onError={() => setFailed(true)}
         />
