@@ -206,7 +206,7 @@ export function PositionsPane({ selectedPortfolioId }: PositionsPaneProps) {
 
   const sortedPositions = useMemo(() => {
     const { fn } = SORTS[sortKey];
-    return [...filteredPositions].sort((a, b) => {
+    return filteredPositions.toSorted((a, b) => {
       const va = fn(a);
       const vb = fn(b);
       if (typeof va === "string" && typeof vb === "string")
