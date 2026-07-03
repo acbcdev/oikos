@@ -48,7 +48,6 @@ const accountSchema = z.object({
 
 type AccountFormValues = z.infer<typeof accountSchema>;
 
-
 function capitalizeFirst(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
@@ -68,7 +67,9 @@ export function EditAccountModal({
     resolver: zodResolver(accountSchema),
     defaultValues: {
       name: account.name,
-      accountType: capitalizeFirst(account.type) as (typeof accountTypes)[number],
+      accountType: capitalizeFirst(
+        account.type,
+      ) as (typeof accountTypes)[number],
       currency: account.currency,
       balance: String(account.balance),
     },
@@ -78,14 +79,20 @@ export function EditAccountModal({
     if (open) {
       form.reset({
         name: account.name,
-        accountType: capitalizeFirst(account.type) as (typeof accountTypes)[number],
+        accountType: capitalizeFirst(
+          account.type,
+        ) as (typeof accountTypes)[number],
         currency: account.currency,
         balance: String(account.balance),
       });
     }
-  }, [open, account]);
+  }, [open, account, form]);
 
-  const currency = useWatch({ control: form.control, name: "currency", defaultValue: account.currency });
+  const currency = useWatch({
+    control: form.control,
+    name: "currency",
+    defaultValue: account.currency,
+  });
 
   const currencySymbol =
     new Intl.NumberFormat("en-US", { style: "currency", currency })
@@ -134,9 +141,7 @@ export function EditAccountModal({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Account Name
-                  </FormLabel>
+                  <FormLabel>Account Name</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
@@ -155,9 +160,7 @@ export function EditAccountModal({
               name="accountType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Account Type
-                  </FormLabel>
+                  <FormLabel>Account Type</FormLabel>
                   <FormControl>
                     <Select
                       value={field.value}
@@ -168,10 +171,7 @@ export function EditAccountModal({
                       </SelectTrigger>
                       <SelectContent>
                         {accountTypes.map((t) => (
-                          <SelectItem
-                            key={t}
-                            value={t}
-                                                      >
+                          <SelectItem key={t} value={t}>
                             {t}
                           </SelectItem>
                         ))}
@@ -199,10 +199,7 @@ export function EditAccountModal({
                       </SelectTrigger>
                       <SelectContent>
                         {currencies.map((c) => (
-                          <SelectItem
-                            key={c.code}
-                            value={c.code}
-                                                      >
+                          <SelectItem key={c.code} value={c.code}>
                             {c.label}
                           </SelectItem>
                         ))}

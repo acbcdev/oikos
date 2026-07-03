@@ -149,16 +149,6 @@ export function DateRangePicker({
     );
   }
 
-  function handleWeekSelect(range: DateRange | undefined) {
-    const anchor = range?.from;
-    if (!anchor) {
-      onRangeChange(null, null);
-      return;
-    }
-    const d = Dater.of(anchor);
-    onRangeChange(d.weekStart().iso(), d.weekEnd().iso());
-  }
-
   function handleMonthClick(monthIdx: number) {
     const d = Dater.ofYM(viewYear, monthIdx);
     onRangeChange(

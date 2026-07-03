@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -87,30 +88,42 @@ export function LinkAccountModal({
     },
   });
 
-  const currency = useWatch({ control: form.control, name: "currency", defaultValue: "USD" });
-  const selectedType = useWatch({ control: form.control, name: "accountType", defaultValue: "checking" });
+  const currency = useWatch({
+    control: form.control,
+    name: "currency",
+    defaultValue: "USD",
+  });
+  const selectedType = useWatch({
+    control: form.control,
+    name: "accountType",
+    defaultValue: "checking",
+  });
 
   const currencySymbol =
     new Intl.NumberFormat("en-US", { style: "currency", currency })
       .formatToParts(0)
       .find((p) => p.type === "currency")?.value ?? "$";
 
-  const ActiveIcon = ACCOUNT_TYPES.find((t) => t.value === selectedType)?.icon ?? CreditCard;
+  const ActiveIcon =
+    ACCOUNT_TYPES.find((t) => t.value === selectedType)?.icon ?? CreditCard;
 
-  const onSubmit = (data: AccountFormValues) => {
-    const acc: Account = {
-      id: `acc-${Date.now()}`,
-      name: data.name.trim(),
-      institution: data.name.trim(),
-      type: data.accountType,
-      currency: data.currency,
-      balance: data.balance ? parseFloat(data.balance) : 0,
-    };
+  const onSubmit = useCallback(
+    (data: AccountFormValues) => {
+      const acc: Account = {
+        id: `acc-${Date.now()}`,
+        name: data.name.trim(),
+        institution: data.name.trim(),
+        type: data.accountType,
+        currency: data.currency,
+        balance: data.balance ? parseFloat(data.balance) : 0,
+      };
 
-    addAccount(acc);
-    onOpenChange(false);
-    form.reset();
-  };
+      addAccount(acc);
+      onOpenChange(false);
+      form.reset();
+    },
+    [addAccount, onOpenChange, form],
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -162,31 +175,41 @@ export function LinkAccountModal({
                   <FormLabel>Account Type</FormLabel>
                   <FormControl>
                     <div className="grid grid-cols-3 gap-2">
-                      {ACCOUNT_TYPES.map(({ label, value, icon: Icon, description }) => {
-                        const isSelected = field.value === value;
-                        return (
-                          <button
-                            key={value}
-                            type="button"
-                            onClick={() => field.onChange(value)}
-                            className={cn(
-                              "flex flex-col items-start gap-2 rounded-xl border p-3.5 text-left transition-all",
-                              isSelected
-                                ? "border-primary bg-primary/10 text-foreground"
-                                : "border-border bg-secondary/40 text-muted-foreground hover:border-border/60 hover:bg-secondary/60 hover:text-foreground",
-                            )}
-                          >
-                            <Icon
-                              size={16}
-                              className={isSelected ? "text-primary" : "text-muted-foreground"}
-                            />
-                            <div>
-                              <p className="text-xs font-semibold font-display">{label}</p>
-                              <p className="text-[10px] opacity-60 leading-tight">{description}</p>
-                            </div>
-                          </button>
-                        );
-                      })}
+                      {ACCOUNT_TYPES.map(
+                        ({ label, value, icon: Icon, description }) => {
+                          const isSelected = field.value === value;
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() => field.onChange(value)}
+                              className={cn(
+                                "flex flex-col items-start gap-2 rounded-xl border p-3.5 text-left transition-all",
+                                isSelected
+                                  ? "border-primary bg-primary/10 text-foreground"
+                                  : "border-border bg-secondary/40 text-muted-foreground hover:border-border/60 hover:bg-secondary/60 hover:text-foreground",
+                              )}
+                            >
+                              <Icon
+                                size={16}
+                                className={
+                                  isSelected
+                                    ? "text-primary"
+                                    : "text-muted-foreground"
+                                }
+                              />
+                              <div>
+                                <p className="text-xs font-semibold font-display">
+                                  {label}
+                                </p>
+                                <p className="text-[10px] opacity-60 leading-tight">
+                                  {description}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        },
+                      )}
                     </div>
                   </FormControl>
                   <FormMessage />

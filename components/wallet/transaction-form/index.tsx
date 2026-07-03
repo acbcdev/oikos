@@ -98,10 +98,19 @@ export function TransactionForm({
         description: "",
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional, resets only on open
   }, [open]);
 
-  const type = useWatch({ control: form.control, name: "type", defaultValue: "expense" });
-  const fromAccount = useWatch({ control: form.control, name: "fromAccount", defaultValue: defaultAccountId });
+  const type = useWatch({
+    control: form.control,
+    name: "type",
+    defaultValue: "expense",
+  });
+  const fromAccount = useWatch({
+    control: form.control,
+    name: "fromAccount",
+    defaultValue: defaultAccountId,
+  });
 
   const currencySymbol = useMemo(() => {
     const account = accounts.find((a) => a.id === fromAccount);
